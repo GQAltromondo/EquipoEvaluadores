@@ -123,8 +123,8 @@ sap.ui.define([
                 var aEvaluadores = oModel.getProperty("/EvaluadoresModel") || [];
                 
                 // Contar favoritos actuales (excluyendo el actual si ya es favorito)
-                var iFavoritosCount = aEvaluadores.filter(function(eval) {
-                    return eval.Favorito === true;
+                var iFavoritosCount = aEvaluadores.filter(function(evalu) {
+                    return evalu.Favorito === true;
                 }).length;
                 
                 // Si está intentando marcar como favorito y ya hay 3 favoritos
@@ -148,9 +148,9 @@ sap.ui.define([
                 if (index >= 0 && index < aEvaluadores.length) {
                     aEvaluadores.splice(index, 1);
                     // Asegurar que todos los evaluadores tengan el campo Favorito
-                    aEvaluadores.forEach(function(eval) {
-                        if (eval.Favorito === undefined) {
-                            eval.Favorito = false;
+                    aEvaluadores.forEach(function(evalu) {
+                        if (evalu.Favorito === undefined) {
+                            evalu.Favorito = false;
                         }
                     });
                     oModel.setProperty("/EvaluadoresModel", aEvaluadores);
@@ -278,7 +278,7 @@ sap.ui.define([
                     let sNombreCompleto = (oObject.Nombre || "").trim() + " " + (oObject.Apellido || "").trim();
 
                     // Verificar si el evaluador ya existe en la tabla principal
-                    var bExiste = aEvaluadoresActuales.some(function(eval) {
+                    var bExiste = aEvaluadoresActuales.some(function(evalu) {
                         return eval.Puser === sLegajo;
                     });
 
@@ -341,8 +341,8 @@ sap.ui.define([
                 }
                 
                 // Contar favoritos
-                var aFavoritos = aEvaluadores.filter(function(eval) {
-                    return eval.Favorito === true;
+                var aFavoritos = aEvaluadores.filter(function(evalu) {
+                    return evalu.Favorito === true;
                 });
                 
                 var sMensaje = "Se guardaron " + aEvaluadores.length + " evaluador(es)";
