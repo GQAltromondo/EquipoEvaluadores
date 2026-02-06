@@ -17,7 +17,12 @@ sap.ui.define([
                 this.getBaseURL();
                 
                 // Inicializar el modelo Evaluadores
-                var oModel = new JSONModel({ Evaluadores: [], Busy: false });
+                var oModel = new JSONModel({ 
+                    Evaluadores: [], 
+                    EvaluadoresCompletos: [],
+                    FilterValue: "",
+                    Busy: false 
+                });
                 this.getView().setModel(oModel, "Evaluadores");
                 
                 // Inicializar el modelo EvaluadoresModel para la tabla principal
@@ -197,14 +202,26 @@ sap.ui.define([
                 // Obtener o crear el modelo Evaluadores
                 var oModel = this.getView().getModel("Evaluadores");
                 if (!oModel) {
-                    oModel = new JSONModel({ Evaluadores: [], Busy: true });
+                    oModel = new JSONModel({ 
+                        Evaluadores: [], 
+                        EvaluadoresCompletos: [], // Copia completa para filtrado
+                        Busy: true 
+                    });
                     this.getView().setModel(oModel, "Evaluadores");
                 } else {
                     oModel.setProperty("/Busy", true);
                 }
                 
-                // Cargar los datos del PersonalInternoService cuando se abre el Dialog
-                this.loadEvaluadores();
+                // Cargar los datos del PersonalInternoService cuando se abre el Dialog (solo una vez)
+                // Si ya hay datos completos cargados, no volver a cargar
+                var aEvaluadoresCompletos = oModel.getProperty("/EvaluadoresCompletos") || [];
+                if (aEvaluadoresCompletos.length === 0) {
+                    this.loadEvaluadores();
+                } else {
+                    // Si ya hay datos, restaurar la lista completa y quitar el filtro
+                    oModel.setProperty("/Evaluadores", aEvaluadoresCompletos);
+                    oModel.setProperty("/Busy", false);
+                }
                 
                 this._dialog = new sap.m.Dialog({
                     title: "Evaluadores",
@@ -511,9 +528,32 @@ sap.ui.define([
                 // Asegurar que sea string
                 sSearchValue = (sSearchValue || "").toString().trim();
                 
-                // Cargar evaluadores con el filtro de búsqueda
-                // Si está vacío, cargar todos los evaluadores (sin filtro)
-                this.loadEvaluadores(sSearchValue);
+                // Filtrar localmente sobre los datos ya cargados
+                var oModel = this.getView().getModel("Evaluadores");
+                if (oModel) {
+                    // Actualizar el valor del filtro en el modelo
+                    oModel.setProperty("/FilterValue", sSearchValue);
+                    
+                    // Si el filtro está vacío, mostrar todos los evaluadores
+                    if (!sSearchValue || sSearchValue === "") {
+                        var aEvaluadoresCompletos = oModel.getProperty("/EvaluadoresCompletos") || [];
+                        oModel.setProperty("/Evaluadores", aEvaluadoresCompletos);
+                    } else {
+                        // Filtrar localmente
+                        var aEvaluadoresCompletos = oModel.getProperty("/EvaluadoresCompletos") || [];
+                        var sFilterLower = sSearchValue.toLowerCase();
+                        var aFiltrados = aEvaluadoresCompletos.filter(function(evaluador) {
+                            var sNombre = (evaluador.Nombre || "").toLowerCase();
+                            var sApellido = (evaluador.Apellido || "").toLowerCase();
+                            var sLegajo = (evaluador.Legajo || "").toLowerCase();
+                            return sNombre.indexOf(sFilterLower) !== -1 || 
+                                   sApellido.indexOf(sFilterLower) !== -1 || 
+                                   sLegajo.indexOf(sFilterLower) !== -1;
+                        });
+                        oModel.setProperty("/Evaluadores", aFiltrados);
+                    }
+                    oModel.updateBindings(true);
+                }
             },
             onSuccessLoadEvaluadores: function (response) {
                 var aEvaluadores = response.results || [];
@@ -521,11 +561,19 @@ sap.ui.define([
                 // Crear o actualizar el modelo Evaluadores
                 var oModel = this.getView().getModel("Evaluadores");
                 if (!oModel) {
-                    oModel = new JSONModel({ Evaluadores: [], Busy: false });
+                    oModel = new JSONModel({ 
+                        Evaluadores: [], 
+                        EvaluadoresCompletos: [],
+                        FilterValue: "",
+                        Busy: false 
+                    });
                     this.getView().setModel(oModel, "Evaluadores");
                 }
                 
+                // Guardar la copia completa de todos los evaluadores
+                oModel.setProperty("/EvaluadoresCompletos", aEvaluadores);
                 oModel.setProperty("/Evaluadores", aEvaluadores);
+                oModel.setProperty("/FilterValue", "");
                 oModel.setProperty("/Busy", false);
                 
                 // Si el Dialog está abierto, actualizar su modelo también
@@ -534,7 +582,10 @@ sap.ui.define([
                     // Actualizar también el binding de la tabla
                     var oTable = this.byId("TableEvaluador");
                     if (oTable) {
-                        oTable.getBinding("items").refresh();
+                        var oBinding = oTable.getBinding("items");
+                        if (oBinding) {
+                            oBinding.refresh();
+                        }
                     }
                 }
             },
