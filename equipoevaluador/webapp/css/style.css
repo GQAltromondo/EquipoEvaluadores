@@ -96,3 +96,20 @@
     font-weight: bold;
 }
 }
+
+/* Dialog Evaluadores - Full Width and Height */
+.sapMDialog.sapMDialogStretch {
+    width: 100% !important;
+    height: 100% !important;
+    max-width: 100% !important;
+    max-height: 100% !important;
+}
+
+.sapMDialog.sapMDialogStretch .sapMDialogScroll {
+    height: calc(100% - 8rem) !important;
+}
+
+.sapMDialog.sapMDialogStretch .sapUiTable {
+    width: 100% !important;
+    height: 100% !important;
+}

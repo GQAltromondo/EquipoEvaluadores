@@ -209,6 +209,8 @@ sap.ui.define([
                 selectionBehavior: sap.ui.table.SelectionBehavior.Row,
                 enableBusyIndicator: true,
                 busy: "{Evaluadores>/Busy}",
+                width: "100%",
+                height: "100%",
 
                 // ✅ NO pisar SeleccionesGuardadas cuando la tabla resetea por filtro/refresh
                 rowSelectionChange: function (oEvent) {
@@ -220,6 +222,8 @@ sap.ui.define([
                     }
 
                     that._syncSelectionFromUiTable();
+                    // Actualizar contador de seleccionados
+                    that._updateSelectionCount();
                 },
 
                 columns: [
@@ -246,13 +250,22 @@ sap.ui.define([
 
             oUiTable.bindRows("Evaluadores>/Evaluadores");
 
+            // Crear un modelo para el título dinámico con contador
+            var oTitleModel = new JSONModel({
+                selectedCount: 0,
+                totalCount: 0
+            });
+            this.getView().setModel(oTitleModel, "DialogTitleModel");
+            
             this._dialog = new Dialog({
-                title: "Evaluadores",
+                title: "{= ${DialogTitleModel>/selectedCount} > 0 ? 'Evaluadores (' + ${DialogTitleModel>/selectedCount} + ' seleccionados)' : 'Evaluadores'}",
                 id: this.createId("oDialog"),
                 stretch: true,
+                resizable: true,
                 busy: "{Evaluadores>/Busy}",
                 busyIndicatorDelay: 0,
                 afterClose: [this.afterCloseDialog, this],
+                customHeader: null,
 
                 beginButton: new Button({
                     text: "Cancelar",
@@ -282,12 +295,42 @@ sap.ui.define([
             });
 
             this._dialog.setModel(oModel, "Evaluadores");
+            this._dialog.setModel(oTitleModel, "DialogTitleModel");
+            
+            // Actualizar contador inicial
+            this._updateSelectionCount();
+            
             this._dialog.open();
 
             // ✅ restaurar selección por Legajo después de render/binding
             setTimeout(function () {
                 that._restoreSelectionToUiTable();
+                that._updateSelectionCount();
             }, 0);
+        },
+        
+        _updateSelectionCount: function() {
+            var oTable = this.byId("UiTableEvaluador");
+            var oTitleModel = this.getView().getModel("DialogTitleModel");
+            var oModel = this.getView().getModel("Evaluadores");
+            
+            if (!oTitleModel || !oModel) {
+                return;
+            }
+            
+            var iSelectedCount = 0;
+            var iTotalCount = 0;
+            
+            if (oTable) {
+                var aSelectedIndices = oTable.getSelectedIndices();
+                iSelectedCount = aSelectedIndices.length;
+            }
+            
+            var aEvaluadores = oModel.getProperty("/Evaluadores") || [];
+            iTotalCount = aEvaluadores.length;
+            
+            oTitleModel.setProperty("/selectedCount", iSelectedCount);
+            oTitleModel.setProperty("/totalCount", iTotalCount);
         },
 
         closeDialog: function () {
@@ -360,6 +403,8 @@ sap.ui.define([
             var that = this;
             setTimeout(function () {
                 that._bSuppressSelectionSync = false;
+                // Actualizar contador después de restaurar selecciones
+                that._updateSelectionCount();
             }, 0);
         },
 
@@ -525,6 +570,14 @@ sap.ui.define([
             oModel.setProperty("/FilterValue", "");
             if (!oModel.getProperty("/SeleccionesGuardadas")) oModel.setProperty("/SeleccionesGuardadas", []);
             oModel.setProperty("/Busy", false);
+            
+            // Actualizar contador si el Dialog está abierto
+            if (this._dialog) {
+                var that = this;
+                setTimeout(function() {
+                    that._updateSelectionCount();
+                }, 100);
+            }
 
             // si el dialog está abierto, restaurar selección
             var that = this;
