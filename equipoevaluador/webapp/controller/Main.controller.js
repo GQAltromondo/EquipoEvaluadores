@@ -20,6 +20,10 @@ sap.ui.define([
                 var oModel = new JSONModel({ Evaluadores: [], Busy: false });
                 this.getView().setModel(oModel, "Evaluadores");
                 
+                // Inicializar el modelo EvaluadoresModel para la tabla principal
+                var oEvaluadoresModel = new JSONModel({ EvaluadoresModel: [] });
+                this.getView().setModel(oEvaluadoresModel, "EvaluadoresModel");
+                
                 // Inicializar el modelo FiltrosModel si no existe
                 if (!this.getView().getModel("FiltrosModel")) {
                     var oFiltrosModel = new JSONModel({});
@@ -99,10 +103,15 @@ sap.ui.define([
                 );
             },
             onPressDeleteEvaluador: function (oEvaluador) {
-                var oModel = this.getView().getModel("EvaluadoresModel").getData().EvaluadoresModel;
-                var index = oEvaluador.replace("/EvaluadoresModel/", "");
-                oModel.splice(index, 1);
-                this.getView().getModel("EvaluadoresModel").updateBindings(true);
+                var oModel = this.getView().getModel("EvaluadoresModel");
+                var aEvaluadores = oModel.getProperty("/EvaluadoresModel") || [];
+                var index = parseInt(oEvaluador.replace("/EvaluadoresModel/", ""));
+                
+                if (index >= 0 && index < aEvaluadores.length) {
+                    aEvaluadores.splice(index, 1);
+                    oModel.setProperty("/EvaluadoresModel", aEvaluadores);
+                    oModel.updateBindings(true);
+                }
             },
             onDialogEvaluador: function () {
                 var that = this;
@@ -159,6 +168,13 @@ sap.ui.define([
                             columns: [
                                 new sap.m.Column({
                                     header: new sap.m.Title({
+                                        text: "Legajo",
+                                        design: "bold"
+                                    }),
+                                    width: "20%"
+                                }),
+                                new sap.m.Column({
+                                    header: new sap.m.Title({
                                         text: "Nombre",
                                         design: "bold"
                                     }),
@@ -170,13 +186,6 @@ sap.ui.define([
                                         design: "bold"
                                     }),
                                     width: "40%"
-                                }),
-                                new sap.m.Column({
-                                    header: new sap.m.Title({
-                                        text: "Legajo",
-                                        design: "bold"
-                                    }),
-                                    width: "20%"
                                 })
                             ]
                         }).bindItems({
@@ -186,13 +195,13 @@ sap.ui.define([
                                 press: [this.onEvaluadorPress, this],
                                 cells: [
                                     new sap.m.Text({
+                                        text: "{Evaluadores>Legajo}"
+                                    }),
+                                    new sap.m.Text({
                                         text: "{= ${Evaluadores>Nombre} + ' ' + ${Evaluadores>Apellido}}"
                                     }),
                                     new sap.m.Text({
                                         text: "{Evaluadores>Correo}"
-                                    }),
-                                    new sap.m.Text({
-                                        text: "{Evaluadores>Legajo}"
                                     }),
                                 ]
                             })
@@ -210,33 +219,64 @@ sap.ui.define([
                     sNombres = [],
                     sPuser = [];
 
+                if (oTableId.getSelectedItems().length === 0) {
+                    MessageBoxHelper.showAlert("Equipo Evaluador", "Debe seleccionar al menos un evaluador.");
+                    return;
+                }
+
                 if (oTableId.getSelectedItems().length <= 3) {
+                    // Obtener el modelo de la tabla principal
+                    var oEvaluadoresModel = this.getView().getModel("EvaluadoresModel");
+                    var aEvaluadoresActuales = oEvaluadoresModel.getProperty("/EvaluadoresModel") || [];
+                    
                     oTableId.getSelectedItems().forEach(obj => {
                         let oObject = obj.getBindingContext("Evaluadores").getObject();
+                        let sLegajo = oObject.Legajo;
+                        let sNombreCompleto = (oObject.Nombre || "").trim() + " " + (oObject.Apellido || "").trim();
 
-                        let oDisplay = {
-                            Correo: oObject.Correo,
-                            Nombre: (oObject.Nombre || "") + " " + (oObject.Apellido || ""),
-                            Puser: oObject.Legajo
+                        // Verificar si el evaluador ya existe en la tabla principal
+                        var bExiste = aEvaluadoresActuales.some(function(eval) {
+                            return eval.Puser === sLegajo;
+                        });
+
+                        if (!bExiste) {
+                            let oDisplay = {
+                                Correo: oObject.Correo || "",
+                                Nombre: sNombreCompleto.trim(),
+                                Puser: sLegajo
+                            };
+                            aEvaluadores.push(oDisplay);
+                            aEvaluadoresActuales.push(oDisplay);
+                            sNombres.push(sNombreCompleto.trim());
+                            sPuser.push(sLegajo);
                         }
-                        aEvaluadores.push(oDisplay);
-                        sNombres.push((oObject.Nombre || "") + " " + (oObject.Apellido || ""));
-                        sPuser.push(oObject.Legajo);
                     });
 
+                    // Actualizar el modelo de la tabla principal
+                    oEvaluadoresModel.setProperty("/EvaluadoresModel", aEvaluadoresActuales);
+                    oEvaluadoresModel.updateBindings(true);
+
+                    // Actualizar el modelo de filtros para mostrar en los campos de entrada
                     var oData = this.getView().getModel("FiltrosModel").getData();
                     if (!oData) {
                         oData = {};
                     }
-                    oData.Nombre = sNombres.join(' / ');
-                    oData.Puser = sPuser.join(', ');
-                    oData.Evaluadores = aEvaluadores;
-                    this.getView().getModel("FiltrosModel").setData(oData);
-                    this.getView().getModel("FiltrosModel").updateBindings(true);
+                    if (sNombres.length > 0) {
+                        oData.Nombre = sNombres.join(' / ');
+                        oData.Puser = sPuser.join(', ');
+                        oData.Evaluadores = aEvaluadores;
+                        this.getView().getModel("FiltrosModel").setData(oData);
+                        this.getView().getModel("FiltrosModel").updateBindings(true);
+                    }
+
                     this._dialog.close();
 
+                    if (aEvaluadores.length > 0) {
+                        MessageBoxHelper.showAlert("Equipo Evaluador", aEvaluadores.length + " evaluador(es) agregado(s) correctamente.");
+                    }
+
                 } else {
-                    MessageBoxHelper.showAlert("Equipo Evaluador", "Solo puede agregar 3 evaluadores.");
+                    MessageBoxHelper.showAlert("Equipo Evaluador", "Solo puede agregar hasta 3 evaluadores a la vez.");
                 }
             },
 
@@ -257,19 +297,32 @@ sap.ui.define([
                 this._dialog = null;
             },
             onSaveEvaluador: function () {
-                var evaluador = this.getView().getModel("FiltrosModel").getProperty("/Evaluadores");
-                if (Object.keys(evaluador).length == 0)
-                    return MessageBoxHelper.showAlert("Equipo Evaluador", "Debe seleccionar un evaluador.");
-                this.getView().getModel("EvaluadoresModel").setProperty("/EvaluadoresModel", evaluador);
-                this.getView().getModel("EvaluadoresModel").updateBindings(true);
+                // Esta función ya no es necesaria porque los evaluadores se agregan automáticamente
+                // al seleccionarlos en el Dialog. Se mantiene por compatibilidad con la vista.
+                var oData = this.getView().getModel("FiltrosModel").getData();
+                if (!oData || !oData.Evaluadores || oData.Evaluadores.length === 0) {
+                    MessageBoxHelper.showAlert("Equipo Evaluador", "Debe seleccionar un evaluador desde el diálogo.");
+                    return;
+                }
+                // Los evaluadores ya fueron agregados en selectedEvaluator, solo limpiar los filtros
                 this.getView().getModel("FiltrosModel").setData({});
             },
             validateEvaluador: function () {
-                var EvaluadoresModel = this.getView().getModel("EvaluadoresModel").getData().EvaluadoresModel;
+                var oModel = this.getView().getModel("EvaluadoresModel");
+                if (!oModel) {
+                    return true;
+                }
+                var aEvaluadores = oModel.getProperty("/EvaluadoresModel") || [];
                 var evaluador = this.getView().getModel("FiltrosModel").getData();
-                for (var row in EvaluadoresModel) {
-                    if (EvaluadoresModel[row].Puser == evaluador.Puser)
+                
+                if (!evaluador || !evaluador.Puser) {
+                    return true;
+                }
+                
+                for (var i = 0; i < aEvaluadores.length; i++) {
+                    if (aEvaluadores[i].Puser === evaluador.Puser) {
                         return false;
+                    }
                 }
                 return true;
             },
