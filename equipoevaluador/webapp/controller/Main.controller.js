@@ -232,21 +232,42 @@ sap.ui.define([
                 }
                 
                 // Cargar el fragment si no existe
-                if (!this._oDialogEvaluadores) {
-                    this._oDialogEvaluadores = sap.ui.core.Fragment.load({
+                if (!this._oDialogContent) {
+                    this._oDialogContent = sap.ui.core.Fragment.load({
                         id: this.getView().getId(),
                         name: "transener.equipoevaluador.fragment.DialogEvaluadores",
                         controller: this
-                    }).then(function (oDialog) {
+                    }).then(function (oContent) {
+                        // Crear el Dialog y agregar el contenido
+                        var oDialog = new sap.m.Dialog({
+                            title: "Evaluadores",
+                            id: that.createId("oDialogEvaluadores"),
+                            busy: "{Evaluadores>/Busy}",
+                            busyIndicatorDelay: 0,
+                            showHeader: true,
+                            stretch: true,
+                            afterClose: [that.afterCloseDialog, that],
+                            beginButton: new sap.m.Button({
+                                text: "Cancelar",
+                                tooltip: "Cancelar",
+                                press: [that.closeDialog, that]
+                            }),
+                            endButton: new sap.m.Button({
+                                text: "Aceptar",
+                                tooltip: "Aceptar",
+                                press: [that.selectedEvaluator, that]
+                            }),
+                            content: [oContent]
+                        });
+                        
                         that.getView().addDependent(oDialog);
-                        // Asignar el modelo al dialog
                         oDialog.setModel(oModel, "Evaluadores");
                         return oDialog;
                     });
                 }
                 
                 // Asignar el modelo y abrir el dialog
-                this._oDialogEvaluadores.then(function(oDialog) {
+                this._oDialogContent.then(function(oDialog) {
                     oDialog.setModel(oModel, "Evaluadores");
                     oDialog.open();
                 });
@@ -254,11 +275,11 @@ sap.ui.define([
 
             selectedEvaluator: function (oEvent) {
                 var that = this;
-                if (!this._oDialogEvaluadores) {
+                if (!this._oDialogContent) {
                     return;
                 }
                 
-                this._oDialogEvaluadores.then(function(oDialog) {
+                this._oDialogContent.then(function(oDialog) {
                     var oTableId = sap.ui.core.Fragment.byId(that.getView().getId(), "TableEvaluador");
                     let aEvaluadores = [],
                         sNombres = [],
@@ -341,15 +362,15 @@ sap.ui.define([
                 oData.Correo = Evaluadores.Email;
                 this.getView().getModel("FiltrosModel").updateBindings(true);
                 
-                if (this._oDialogEvaluadores) {
-                    this._oDialogEvaluadores.then(function(oDialog) {
+                if (this._oDialogContent) {
+                    this._oDialogContent.then(function(oDialog) {
                         oDialog.close();
                     });
                 }
             },
             closeDialog: function () {
-                if (this._oDialogEvaluadores) {
-                    this._oDialogEvaluadores.then(function(oDialog) {
+                if (this._oDialogContent) {
+                    this._oDialogContent.then(function(oDialog) {
                         oDialog.close();
                     });
                 }
@@ -489,12 +510,12 @@ sap.ui.define([
                 var oSearchField = oEvent.getSource();
                 var oModel = this.getView().getModel("Evaluadores");
                 
-                if (!oModel || !this._oDialogEvaluadores) {
+                if (!oModel || !this._oDialogContent) {
                     return;
                 }
                 
                 // Obtener la tabla del fragment
-                this._oDialogEvaluadores.then(function(oDialog) {
+                this._oDialogContent.then(function(oDialog) {
                     var oTable = sap.ui.core.Fragment.byId(that.getView().getId(), "TableEvaluador");
                     that._performSearch(oEvent, oSearchField, oTable, oModel);
                 });
@@ -717,8 +738,8 @@ sap.ui.define([
                 
                 // Si el Dialog está abierto, actualizar su modelo también
                 var that = this;
-                if (this._oDialogEvaluadores) {
-                    this._oDialogEvaluadores.then(function(oDialog) {
+                if (this._oDialogContent) {
+                    this._oDialogContent.then(function(oDialog) {
                         oDialog.setModel(oModel, "Evaluadores");
                         // Actualizar también el binding de la tabla usando Fragment.byId
                         var oTable = sap.ui.core.Fragment.byId(that.getView().getId(), "TableEvaluador");
