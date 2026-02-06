@@ -1,0 +1,74 @@
+<core:FragmentDefinition xmlns="sap.m"
+    xmlns:core="sap.ui.core"
+    xmlns:uiTable="sap.ui.table">
+
+    <Dialog
+        id="evaluadoresDialog"
+        title="Evaluadores"
+        stretch="true"
+        busy="{Evaluadores>/Busy}"
+        busyIndicatorDelay="0"
+        afterClose=".onAfterCloseEvaluadoresDialog">
+
+        <subHeader>
+            <Bar>
+                <contentMiddle>
+                    <SearchField
+                        id="searchEvaluadores"
+                        width="100%"
+                        placeholder="Buscar por Legajo, Nombre o Apellido"
+                        showSearchButton="true"
+                        liveChange=".onSearchEvaluadoresUiTable"
+                        search=".onSearchEvaluadoresUiTable" />
+                </contentMiddle>
+            </Bar>
+        </subHeader>
+
+        <content>
+            <uiTable:Table
+                id="uiTableEvaluador"
+                enableBusyIndicator="true"
+                busy="{Evaluadores>/Busy}"
+                visibleRowCountMode="Auto"
+                minAutoRowCount="8"
+                selectionMode="MultiToggle"
+                selectionBehavior="Row"
+                rowSelectionChange=".onRowSelectionChangeEvaluadores"
+                rows="{Evaluadores>/Evaluadores}">
+
+                <uiTable:columns>
+                    <uiTable:Column width="14rem" sortProperty="Legajo">
+                        <Label text="Legajo"/>
+                        <uiTable:template>
+                            <Text text="{Evaluadores>Legajo}"/>
+                        </uiTable:template>
+                    </uiTable:Column>
+
+                    <uiTable:Column width="22rem" sortProperty="Nombre">
+                        <Label text="Nombre"/>
+                        <uiTable:template>
+                            <Text text="{= ${Evaluadores>Nombre} + ' ' + ${Evaluadores>Apellido}}"/>
+                        </uiTable:template>
+                    </uiTable:Column>
+
+                    <uiTable:Column width="26rem" sortProperty="Correo">
+                        <Label text="Correo"/>
+                        <uiTable:template>
+                            <Text text="{Evaluadores>Correo}"/>
+                        </uiTable:template>
+                    </uiTable:Column>
+                </uiTable:columns>
+
+            </uiTable:Table>
+        </content>
+
+        <beginButton>
+            <Button text="Cancelar" press=".onCancelEvaluadoresDialog"/>
+        </beginButton>
+
+        <endButton>
+            <Button text="Aceptar" type="Emphasized" press=".onAcceptEvaluadoresDialog"/>
+        </endButton>
+
+    </Dialog>
+</core:FragmentDefinition>
