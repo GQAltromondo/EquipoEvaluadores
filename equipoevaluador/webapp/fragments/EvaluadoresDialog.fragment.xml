@@ -1,6 +1,5 @@
 <core:FragmentDefinition xmlns="sap.m"
-    xmlns:core="sap.ui.core"
-    xmlns:uiTable="sap.ui.table">
+    xmlns:core="sap.ui.core">
 
     <Dialog
         id="evaluadoresDialog"
@@ -14,48 +13,36 @@
             <OverflowToolbar>
                 <SearchField
                     id="searchEvaluadores"
-                    width="80%"
-                    placeholder="Buscar por Legajo, Nombre o Apellido"
-                    liveChange=".onSearchEvaluadores" />
+                    width="100%"
+                    liveChange=".onSearchEvaluadores"
+                    search=".onSearchEvaluadores"
+                    placeholder="Buscar por Legajo, Nombre o Apellido"/>
             </OverflowToolbar>
         </subHeader>
 
         <content>
-            <uiTable:Table
-                id="uiTableEvaluador"
-                enableBusyIndicator="true"
-                busy="{Evaluadores>/Busy}"
-                visibleRowCountMode="Auto"
-                minAutoRowCount="8"
-                selectionMode="MultiToggle"
-                selectionBehavior="Row"
-                rowSelectionChange=".onRowSelectionChangeEvaluadores"
-                rows="{Evaluadores>/Evaluadores}">
+            <List
+                id="idList"
+                items="{Evaluadores>/Evaluadores}"
+                mode="MultiSelect"
+                includeItemInSelection="true"
+                selectionChange=".onSelectionChangeEvaluadores"
+                growing="true"
+                growingThreshold="50">
 
-                <uiTable:columns>
-                    <uiTable:Column width="14rem" sortProperty="Legajo">
-                        <Label text="Legajo"/>
-                        <uiTable:template>
-                            <Text text="{Evaluadores>Legajo}"/>
-                        </uiTable:template>
-                    </uiTable:Column>
+                <infoToolbar>
+                    <OverflowToolbar visible="{= ${Evaluadores>/SeleccionesGuardadas}.length > 0 }" id="idInfoToolbar">
+                        <Label id="idFilterLabel"
+                               text="{= ${Evaluadores>/SeleccionesGuardadas}.length + ' seleccionados' }"/>
+                    </OverflowToolbar>
+                </infoToolbar>
 
-                    <uiTable:Column width="22rem" sortProperty="Nombre">
-                        <Label text="Nombre"/>
-                        <uiTable:template>
-                            <Text text="{= ${Evaluadores>Nombre} + ' ' + ${Evaluadores>Apellido}}"/>
-                        </uiTable:template>
-                    </uiTable:Column>
-
-                    <uiTable:Column width="26rem" sortProperty="Correo">
-                        <Label text="Correo"/>
-                        <uiTable:template>
-                            <Text text="{Evaluadores>Correo}"/>
-                        </uiTable:template>
-                    </uiTable:Column>
-                </uiTable:columns>
-
-            </uiTable:Table>
+                <StandardListItem
+                    title="{= ${Evaluadores>Nombre} + ' ' + ${Evaluadores>Apellido} }"
+                    description="{Evaluadores>Correo}"
+                    info="{Evaluadores>Legajo}"
+                    type="Active"/>
+            </List>
         </content>
 
         <beginButton>
