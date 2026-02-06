@@ -102,6 +102,30 @@ sap.ui.define([
                     jQuery.proxy(this.onPressDeleteEvaluador, this, oEvaluador)
                 );
             },
+            _ordenarEvaluadoresPorFavoritos: function(aEvaluadores) {
+                if (!aEvaluadores || aEvaluadores.length === 0) {
+                    return aEvaluadores;
+                }
+                
+                // Crear una copia del array para no modificar el original directamente
+                var aOrdenados = aEvaluadores.slice();
+                
+                // Ordenar: favoritos primero, luego los demás
+                aOrdenados.sort(function(a, b) {
+                    var aFavorito = a.Favorito === true ? 1 : 0;
+                    var bFavorito = b.Favorito === true ? 1 : 0;
+                    
+                    // Si ambos son favoritos o ninguno, mantener el orden original
+                    if (aFavorito === bFavorito) {
+                        return 0;
+                    }
+                    
+                    // Los favoritos van primero (retornar negativo si a es favorito)
+                    return bFavorito - aFavorito;
+                });
+                
+                return aOrdenados;
+            },
             onToggleFavorito: function (oEvent) {
                 var oButton = oEvent.getSource();
                 var oListItem = oButton.getParent();
@@ -136,8 +160,14 @@ sap.ui.define([
                 // Toggle del estado de favorito
                 var bNuevoEstado = !oEvaluador.Favorito;
                 
-                // Actualizar el modelo
-                oModel.setProperty(sPath + "/Favorito", bNuevoEstado);
+                // Actualizar el estado del favorito
+                oEvaluador.Favorito = bNuevoEstado;
+                
+                // Ordenar los evaluadores poniendo favoritos primero
+                var aEvaluadoresOrdenados = this._ordenarEvaluadoresPorFavoritos(aEvaluadores);
+                
+                // Actualizar el modelo con los evaluadores ordenados
+                oModel.setProperty("/EvaluadoresModel", aEvaluadoresOrdenados);
                 oModel.updateBindings(true);
             },
             onPressDeleteEvaluador: function (oEvaluador) {
@@ -153,7 +183,11 @@ sap.ui.define([
                             evalu.Favorito = false;
                         }
                     });
-                    oModel.setProperty("/EvaluadoresModel", aEvaluadores);
+                    
+                    // Ordenar los evaluadores poniendo favoritos primero
+                    var aEvaluadoresOrdenados = this._ordenarEvaluadoresPorFavoritos(aEvaluadores);
+                    
+                    oModel.setProperty("/EvaluadoresModel", aEvaluadoresOrdenados);
                     oModel.updateBindings(true);
                 }
             },
@@ -193,11 +227,12 @@ sap.ui.define([
                     subHeader: new sap.m.Bar({
                         contentMiddle: [
                             new sap.m.SearchField({
-                                id: "oSearchEvaluadores",
-                                placeholder: "{i18n>Search}",
+                                id: this.createId("oSearchEvaluadores"),
+                                placeholder: "Buscar por Legajo, Nombre o Apellido",
                                 search: [this.onSearchEvaluadores, this],
                                 liveChange: [this.onSearchEvaluadores, this],
-                                width: "100%"
+                                width: "100%",
+                                showSearchButton: true
                             })
                         ]
                     }),
@@ -296,8 +331,11 @@ sap.ui.define([
                     }
                 });
 
+                // Ordenar los evaluadores poniendo favoritos primero
+                var aEvaluadoresOrdenados = this._ordenarEvaluadoresPorFavoritos(aEvaluadoresActuales);
+                
                 // Actualizar el modelo de la tabla principal
-                oEvaluadoresModel.setProperty("/EvaluadoresModel", aEvaluadoresActuales);
+                oEvaluadoresModel.setProperty("/EvaluadoresModel", aEvaluadoresOrdenados);
                 oEvaluadoresModel.updateBindings(true);
 
                 this._dialog.close();
@@ -450,10 +488,31 @@ sap.ui.define([
             },
 
             onSearchEvaluadores: function (oEvent) {
-                var sSearchValue = oEvent.getParameter("newValue") || oEvent.getParameter("query") || oEvent.getSource().getValue() || "";
-                // Trim para eliminar espacios en blanco
-                sSearchValue = sSearchValue.trim();
+                var sSearchValue = "";
+                var oSearchField = oEvent.getSource();
+                
+                // Obtener el valor del search field
+                if (oEvent.getParameter) {
+                    // Para liveChange, usar newValue
+                    sSearchValue = oEvent.getParameter("newValue");
+                    // Para search, usar query
+                    if (sSearchValue === undefined) {
+                        sSearchValue = oEvent.getParameter("query");
+                    }
+                }
+                
+                // Si no hay parámetro, obtener directamente del campo
+                if (sSearchValue === undefined || sSearchValue === null) {
+                    if (oSearchField && oSearchField.getValue) {
+                        sSearchValue = oSearchField.getValue() || "";
+                    }
+                }
+                
+                // Asegurar que sea string
+                sSearchValue = (sSearchValue || "").toString().trim();
+                
                 // Cargar evaluadores con el filtro de búsqueda
+                // Si está vacío, cargar todos los evaluadores (sin filtro)
                 this.loadEvaluadores(sSearchValue);
             },
             onSuccessLoadEvaluadores: function (response) {
@@ -472,6 +531,11 @@ sap.ui.define([
                 // Si el Dialog está abierto, actualizar su modelo también
                 if (this._dialog) {
                     this._dialog.setModel(oModel, "Evaluadores");
+                    // Actualizar también el binding de la tabla
+                    var oTable = this.byId("TableEvaluador");
+                    if (oTable) {
+                        oTable.getBinding("items").refresh();
+                    }
                 }
             },
 

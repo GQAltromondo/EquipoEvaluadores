@@ -1,7 +1,7 @@
 <mvc:View controllerName="transener.equipoevaluador.controller.Main"
     xmlns:mvc="sap.ui.core.mvc" displayBlock="true" xmlns:f="sap.ui.layout.form" xmlns:l="sap.ui.layout" xmlns:core="sap.ui.core"
     xmlns="sap.m">
-    <Page id="page" title="{i18n>title}">
+    <Page id="page">
        <content>
 					<HBox alignItems="Center" direction="Row" width="auto" height="auto" class="sapUiMediumMargin ContentHeader" renderType="Div"
 						displayInline="false">
