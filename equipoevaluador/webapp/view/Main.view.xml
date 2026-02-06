@@ -199,7 +199,7 @@
 													</VBox>
 													<Button 
 														icon="{= ${EvaluadoresModel>Favorito} ? 'sap-icon://favorite' : 'sap-icon://unfavorite'}"
-														type="{= ${EvaluadoresModel>Favorito} ? 'Emphasized' : 'Transparent'}"
+														type="{= ${EvaluadoresModel>Favorito} ? 'Transparent' : 'Transparent'}"
 														press="onToggleFavorito"
 														tooltip="{= ${EvaluadoresModel>Favorito} ? 'Quitar de favoritos' : 'Marcar como favorito'}"
 														class="sapUiSmallMarginBegin"/>

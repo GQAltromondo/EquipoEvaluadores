@@ -279,7 +279,7 @@ sap.ui.define([
 
                     // Verificar si el evaluador ya existe en la tabla principal
                     var bExiste = aEvaluadoresActuales.some(function(evalu) {
-                        return eval.Puser === sLegajo;
+                        return evalu.Puser === sLegajo;
                     });
 
                     if (!bExiste) {
@@ -302,16 +302,12 @@ sap.ui.define([
 
                 this._dialog.close();
 
-                if (aEvaluadores.length > 0) {
-                    MessageBoxHelper.showAlert("Equipo Evaluador", aEvaluadores.length + " evaluador(es) agregado(s) correctamente.");
-                    
-                    // Limpiar los campos del formulario después de agregar los evaluadores
-                    var oFiltrosModel = this.getView().getModel("FiltrosModel");
-                    if (oFiltrosModel) {
-                        oFiltrosModel.setProperty("/Puser", "");
-                        oFiltrosModel.setProperty("/Nombre", "");
-                        oFiltrosModel.updateBindings(true);
-                    }
+                // Limpiar los campos del formulario después de agregar los evaluadores
+                var oFiltrosModel = this.getView().getModel("FiltrosModel");
+                if (oFiltrosModel) {
+                    oFiltrosModel.setProperty("/Puser", "");
+                    oFiltrosModel.setProperty("/Nombre", "");
+                    oFiltrosModel.updateBindings(true);
                 }
             },
 
@@ -454,7 +450,10 @@ sap.ui.define([
             },
 
             onSearchEvaluadores: function (oEvent) {
-                var sSearchValue = oEvent.getParameter("newValue") || oEvent.getSource().getValue() || "";
+                var sSearchValue = oEvent.getParameter("newValue") || oEvent.getParameter("query") || oEvent.getSource().getValue() || "";
+                // Trim para eliminar espacios en blanco
+                sSearchValue = sSearchValue.trim();
+                // Cargar evaluadores con el filtro de búsqueda
                 this.loadEvaluadores(sSearchValue);
             },
             onSuccessLoadEvaluadores: function (response) {
