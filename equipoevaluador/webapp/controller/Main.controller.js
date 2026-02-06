@@ -568,12 +568,13 @@ sap.ui.define([
                 // Obtener las selecciones guardadas acumuladas
                 var aSeleccionesGuardadas = oModel.getProperty("/SeleccionesGuardadas") || [];
                 
-                // Si NO se está limpiando el filtro (hay texto), guardar las selecciones actuales
-                if (sSearchValue && sSearchValue !== "") {
+                // SIEMPRE guardar las selecciones actuales ANTES de hacer cambios (si hay tabla disponible)
+                if (oTable) {
                     var aSeleccionesActuales = [];
+                    var aSelectedItems = oTable.getSelectedItems();
                     
-                    if (oTable) {
-                        var aSelectedItems = oTable.getSelectedItems();
+                    // Solo guardar si hay items seleccionados (para evitar sobrescribir con array vacío)
+                    if (aSelectedItems.length > 0) {
                         aSelectedItems.forEach(function(oItem) {
                             var oContext = oItem.getBindingContext("Evaluadores");
                             if (oContext) {
@@ -593,12 +594,13 @@ sap.ui.define([
                                 aSeleccionesGuardadas.push(sLegajo);
                             }
                         });
+                        
+                        // Guardar las selecciones actualizadas solo si hay selecciones actuales
+                        oModel.setProperty("/SeleccionesGuardadas", aSeleccionesGuardadas);
                     }
                 }
-                // Si se está limpiando (sSearchValue está vacío), mantener las selecciones guardadas acumuladas
-                
-                // Guardar todas las selecciones acumuladas
-                oModel.setProperty("/SeleccionesGuardadas", aSeleccionesGuardadas);
+                // Si no hay selecciones actuales (por ejemplo, cuando se hace clic en la cruz),
+                // mantener las selecciones guardadas sin modificarlas
                 
                 // Limpiar TODAS las selecciones ANTES de actualizar el binding
                 // Esto evita que se mantengan selecciones por índice
