@@ -14,8 +14,17 @@ sap.ui.define([
             onInit: function () {
                 // this.InitModel();
                 // this.LoadFuncionesModel();
-                this.loadEvaluadores();
                 this.getBaseURL();
+                
+                // Inicializar el modelo Evaluadores
+                var oModel = new JSONModel({ Evaluadores: [], Busy: false });
+                this.getView().setModel(oModel, "Evaluadores");
+                
+                // Inicializar el modelo FiltrosModel si no existe
+                if (!this.getView().getModel("FiltrosModel")) {
+                    var oFiltrosModel = new JSONModel({});
+                    this.getView().setModel(oFiltrosModel, "FiltrosModel");
+                }
             },
             getBaseURL: function () {
                 var appId = this.getOwnerComponent().getManifestEntry("/sap.app/id");
@@ -50,8 +59,14 @@ sap.ui.define([
                 var oModel = new sap.ui.model.json.JSONModel();
                 this.getView().setModel(oModel, "FiltrosModel");
             },
-            loadEvaluadores: function () {
+            loadEvaluadores: function (filter) {
+                var oModel = this.getView().getModel("Evaluadores");
+                if (oModel) {
+                    oModel.setProperty("/Busy", true);
+                }
+                
                 PersonalInternoService.LoadSearch(
+                    filter || "",
                     jQuery.proxy(this.onSuccessLoadEvaluadores, this),
                     jQuery.proxy(this.onErrorLoadEvaluadores, this)
                 );
@@ -90,10 +105,24 @@ sap.ui.define([
                 this.getView().getModel("EvaluadoresModel").updateBindings(true);
             },
             onDialogEvaluador: function () {
+                var that = this;
+                
+                // Obtener o crear el modelo Evaluadores
+                var oModel = this.getView().getModel("Evaluadores");
+                if (!oModel) {
+                    oModel = new JSONModel({ Evaluadores: [], Busy: true });
+                    this.getView().setModel(oModel, "Evaluadores");
+                } else {
+                    oModel.setProperty("/Busy", true);
+                }
+                
+                // Cargar los datos del PersonalInternoService cuando se abre el Dialog
+                this.loadEvaluadores();
+                
                 this._dialog = new sap.m.Dialog({
                     title: "Evaluadores",
                     id: "oDialog",
-                    busy: "{Suppliers>/Busy}",
+                    busy: "{Evaluadores>/Busy}",
                     busyIndicatorDelay: 0,
                     showHeader: true,
                     stretch: true,
@@ -114,6 +143,7 @@ sap.ui.define([
                                 id: "oSearchEvaluadores",
                                 placeholder: "{i18n>Search}",
                                 search: [this.onSearchEvaluadores, this],
+                                liveChange: [this.onSearchEvaluadores, this],
                                 width: "100%"
                             })
                         ]
@@ -122,29 +152,31 @@ sap.ui.define([
                         new sap.m.Table({
                             id: this.createId("TableEvaluador"),
                             fixedLayout: false,
-                            noDataText: "{i18n>NoSuppliersAvailable}",
+                            noDataText: "No hay evaluadores disponibles",
                             busy: "{Evaluadores>/Busy}",
                             busyIndicatorDelay: 0,
                             mode: "MultiSelect",
                             columns: [
                                 new sap.m.Column({
                                     header: new sap.m.Title({
-                                        text: "Usuario",
-                                        design: "bold"
-                                    }),
-                                    width: "30%"
-                                }),
-                                new sap.m.Column({
-                                    header: new sap.m.Title({
                                         text: "Nombre",
                                         design: "bold"
-                                    })
+                                    }),
+                                    width: "40%"
                                 }),
                                 new sap.m.Column({
                                     header: new sap.m.Title({
-                                        text: "Email",
+                                        text: "Correo",
                                         design: "bold"
-                                    })
+                                    }),
+                                    width: "40%"
+                                }),
+                                new sap.m.Column({
+                                    header: new sap.m.Title({
+                                        text: "Legajo",
+                                        design: "bold"
+                                    }),
+                                    width: "20%"
                                 })
                             ]
                         }).bindItems({
@@ -154,22 +186,21 @@ sap.ui.define([
                                 press: [this.onEvaluadorPress, this],
                                 cells: [
                                     new sap.m.Text({
-                                        text: "{Evaluadores>Legajo}"
-                                    }),
-                                    new sap.m.Text({
-                                        text: "{Evaluadores>Nombre}"
+                                        text: "{= ${Evaluadores>Nombre} + ' ' + ${Evaluadores>Apellido}}"
                                     }),
                                     new sap.m.Text({
                                         text: "{Evaluadores>Correo}"
+                                    }),
+                                    new sap.m.Text({
+                                        text: "{Evaluadores>Legajo}"
                                     }),
                                 ]
                             })
                         })
                     ]
                 });
-                var oModel = this.getView().getModel("Evaluadores");
+                
                 this._dialog.setModel(oModel, "Evaluadores");
-
                 this._dialog.open();
             },
 
@@ -185,18 +216,22 @@ sap.ui.define([
 
                         let oDisplay = {
                             Correo: oObject.Correo,
-                            Nombre: oObject.Nombre,
+                            Nombre: (oObject.Nombre || "") + " " + (oObject.Apellido || ""),
                             Puser: oObject.Legajo
                         }
                         aEvaluadores.push(oDisplay);
-                        sNombres.push(oObject.Nombre)
-                        sPuser.push(oObject.Legajo)
+                        sNombres.push((oObject.Nombre || "") + " " + (oObject.Apellido || ""));
+                        sPuser.push(oObject.Legajo);
                     });
 
                     var oData = this.getView().getModel("FiltrosModel").getData();
+                    if (!oData) {
+                        oData = {};
+                    }
                     oData.Nombre = sNombres.join(' / ');
                     oData.Puser = sPuser.join(', ');
                     oData.Evaluadores = aEvaluadores;
+                    this.getView().getModel("FiltrosModel").setData(oData);
                     this.getView().getModel("FiltrosModel").updateBindings(true);
                     this._dialog.close();
 
@@ -319,17 +354,37 @@ sap.ui.define([
                 this.loadSociety();
             },
 
-            onSearchEvaluadores: function () {
-                var I_Search = sap.ui.getCore().byId("oSearchEvaluadores").getValue();
-
+            onSearchEvaluadores: function (oEvent) {
+                var sSearchValue = oEvent.getParameter("newValue") || oEvent.getSource().getValue() || "";
+                this.loadEvaluadores(sSearchValue);
             },
             onSuccessLoadEvaluadores: function (response) {
-                var aEvaluadores = response.oSource.oData.members || [];
-
-                var oModel = new JSONModel({ Evaluadores: aEvaluadores });
-                this.getView().setModel(oModel, "Evaluadores"); // <-- SIEMPRE "Evaluadores"
+                var aEvaluadores = response.results || [];
+                
+                // Crear o actualizar el modelo Evaluadores
+                var oModel = this.getView().getModel("Evaluadores");
+                if (!oModel) {
+                    oModel = new JSONModel({ Evaluadores: [], Busy: false });
+                    this.getView().setModel(oModel, "Evaluadores");
+                }
+                
+                oModel.setProperty("/Evaluadores", aEvaluadores);
+                oModel.setProperty("/Busy", false);
+                
+                // Si el Dialog está abierto, actualizar su modelo también
+                if (this._dialog) {
+                    this._dialog.setModel(oModel, "Evaluadores");
+                }
             },
 
-            onErrorLoadEvaluadores: function (e) { }
+            onErrorLoadEvaluadores: function (error) {
+                console.error("Error al cargar evaluadores:", error);
+                MessageBoxHelper.showAlert("Error", "No se pudieron cargar los evaluadores. Por favor, intente nuevamente.");
+                
+                var oModel = this.getView().getModel("Evaluadores");
+                if (oModel) {
+                    oModel.setProperty("/Busy", false);
+                }
+            }
         });
     });

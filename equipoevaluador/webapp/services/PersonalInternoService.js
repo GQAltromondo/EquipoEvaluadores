@@ -7,19 +7,19 @@ sap.ui.define([
 
 		LoadSearch: function(filter, onSuccessCallback, onErrorCallback) {
 			var filters = [];
-			/*
-			filters.push(new sap.ui.model.Filter({
-				filters: [
-					new sap.ui.model.Filter("Nombre", sap.ui.model.FilterOperator.EQ, filter),
-					new sap.ui.model.Filter("Apellido", sap.ui.model.FilterOperator.EQ, filter),
-					new sap.ui.model.Filter("Legajo", sap.ui.model.FilterOperator.EQ, filter)
-				],
-				and: false
-			}));
-			*/
-			filters.push(new sap.ui.model.Filter("Nombre", sap.ui.model.FilterOperator.EQ, filter));
-			filters.push(new sap.ui.model.Filter("Apellido", sap.ui.model.FilterOperator.EQ, filter));
-			filters.push(new sap.ui.model.Filter("Legajo", sap.ui.model.FilterOperator.EQ, filter));
+			
+			// Si hay un filtro, crear filtros de búsqueda
+			if (filter) {
+				var oFilter = new sap.ui.model.Filter({
+					filters: [
+						new sap.ui.model.Filter("Nombre", sap.ui.model.FilterOperator.Contains, filter),
+						new sap.ui.model.Filter("Apellido", sap.ui.model.FilterOperator.Contains, filter),
+						new sap.ui.model.Filter("Legajo", sap.ui.model.FilterOperator.Contains, filter)
+					],
+					and: false
+				});
+				filters.push(oFilter);
+			}
 			
 			var odataModel = oDataService.getModel();
 			odataModel.read("/PersonalInternoMtoSet", {
