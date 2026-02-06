@@ -155,19 +155,19 @@ sap.ui.define([
         },
 
         onPressDeleteEvaluador: function (oEvent) {
-            // Para sap.m.Table: listItem context
             var oItem = oEvent.getParameter("listItem");
             var oCtx = oItem && oItem.getBindingContext("EvaluadoresModel");
             if (!oCtx) return;
 
-            var sPath = oCtx.getPath();
+            var oObj = oCtx.getObject();
             var oModel = this.getView().getModel("EvaluadoresModel");
-            var aEvaluadores = oModel.getProperty("/EvaluadoresModel") || [];
+            var aEvaluadores = (oModel.getProperty("/EvaluadoresModel") || []).slice();
 
-            var index = parseInt(sPath.replace("/EvaluadoresModel/", ""), 10);
-            if (isNaN(index) || index < 0 || index >= aEvaluadores.length) return;
+            // Buscar por Puser (Legajo) para no depender del formato del path
+            var i = aEvaluadores.findIndex(function (e) { return e.Puser === oObj.Puser; });
+            if (i === -1) return;
 
-            aEvaluadores.splice(index, 1);
+            aEvaluadores.splice(i, 1);
             aEvaluadores.forEach(function (e) {
                 if (e.Favorito === undefined) e.Favorito = false;
             });
@@ -356,6 +356,9 @@ sap.ui.define([
 
             oEvalModel.setProperty("/EvaluadoresModel", this._ordenarEvaluadoresPorFavoritos(aActuales));
             oEvalModel.updateBindings(true);
+
+            // limpiar selección del diálogo para la próxima vez que se abra
+            oModel.setProperty("/SeleccionesGuardadas", []);
 
             // cerrar dialog
             this.onCancelEvaluadoresDialog();
