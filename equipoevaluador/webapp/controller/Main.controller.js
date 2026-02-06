@@ -1,783 +1,545 @@
 sap.ui.define([
     "sap/ui/core/mvc/Controller",
     "sap/ui/model/json/JSONModel",
+
+    "sap/m/Dialog",
+    "sap/m/Button",
+    "sap/m/Bar",
+    "sap/m/SearchField",
+    "sap/m/Label",
+    "sap/m/Text",
+
+    "sap/ui/table/Table",
+    "sap/ui/table/Column",
+
     "transener/equipoevaluador/utils/MessageBoxHelper",
     "transener/equipoevaluador/utils/ModelHelper",
     "transener/equipoevaluador/services/RegionService",
     "transener/equipoevaluador/services/EvaluadoresService",
     "transener/equipoevaluador/services/PersonalInternoService"
-],
-    function (Controller, JSONModel, MessageBoxHelper, ModelHelper, RegionService, EvaluadoresService, PersonalInternoService) {
-        "use strict";
+], function (
+    Controller,
+    JSONModel,
+    Dialog,
+    Button,
+    Bar,
+    SearchField,
+    Label,
+    Text,
+    UiTable,
+    UiColumn,
+    MessageBoxHelper,
+    ModelHelper,
+    RegionService,
+    EvaluadoresService,
+    PersonalInternoService
+) {
+    "use strict";
 
-        return Controller.extend("transener.equipoevaluador.controller.Main", {
-            onInit: function () {
-                // this.InitModel();
-                // this.LoadFuncionesModel();
-                this.getBaseURL();
-                
-                // Inicializar el modelo Evaluadores
-                var oModel = new JSONModel({ 
-                    Evaluadores: [], 
+    return Controller.extend("transener.equipoevaluador.controller.Main", {
+
+        onInit: function () {
+            // ✅ Flag para NO pisar selecciones cuando la tabla cambia por filtro/refresh
+            this._bSuppressSelectionSync = false;
+
+            this.getBaseURL();
+
+            // Modelo Evaluadores (dialog)
+            var oModel = new JSONModel({
+                Evaluadores: [],
+                EvaluadoresCompletos: [],
+                SeleccionesGuardadas: [], // Legajos seleccionados
+                FilterValue: "",
+                Busy: false
+            });
+            this.getView().setModel(oModel, "Evaluadores");
+
+            // Modelo tabla principal
+            var oEvaluadoresModel = new JSONModel({ EvaluadoresModel: [] });
+            this.getView().setModel(oEvaluadoresModel, "EvaluadoresModel");
+
+            // Modelo filtros
+            if (!this.getView().getModel("FiltrosModel")) {
+                this.getView().setModel(new JSONModel({}), "FiltrosModel");
+            }
+        },
+
+        getBaseURL: function () {
+            var appId = this.getOwnerComponent().getManifestEntry("/sap.app/id");
+
+            var appModel = ModelHelper.getModel("appModel", this.getView());
+            appModel.setData(appId);
+            sap.ui.getCore().setModel(appModel, "appId");
+
+            var appPath = appId.replaceAll(".", "/");
+            var appModulePath = jQuery.sap.getModulePath(appPath);
+
+            var jsonModel = sap.ui.getCore().getModel("appCurrentInfo");
+            if (!jsonModel) {
+                jsonModel = new JSONModel();
+                jsonModel.setSizeLimit(9999);
+                sap.ui.getCore().setModel(jsonModel, "appCurrentInfo");
+            }
+
+            jsonModel.setData({ appUrl: appModulePath });
+            console.log("URL base de la aplicación configurada:", appModulePath);
+
+            return appModulePath;
+        },
+
+        InitModel: function () {
+            this.getView().setModel(new JSONModel(), "FiltrosModel");
+        },
+
+        loadEvaluadores: function (filter) {
+            var oModel = this.getView().getModel("Evaluadores");
+            if (oModel) oModel.setProperty("/Busy", true);
+
+            PersonalInternoService.LoadSearch(
+                filter || "",
+                jQuery.proxy(this.onSuccessLoadEvaluadores, this),
+                jQuery.proxy(this.onErrorLoadEvaluadores, this)
+            );
+        },
+
+        loadSociety: function () {
+            this.LoadRegionesModel("100");
+        },
+
+        handleDelete: function (oEvent) {
+            var oEvaluador = oEvent.getParameter("listItem").getBindingContext("EvaluadoresModel").getPath();
+            MessageBoxHelper.showConfirm(
+                "Eliminar Evaluador",
+                "Desea eliminar a este evaluador?",
+                jQuery.proxy(this.onPressDeleteEvaluador, this, oEvaluador)
+            );
+        },
+
+        _ordenarEvaluadoresPorFavoritos: function (aEvaluadores) {
+            if (!aEvaluadores || aEvaluadores.length === 0) return aEvaluadores;
+
+            var aOrdenados = aEvaluadores.slice();
+            aOrdenados.sort(function (a, b) {
+                var aFav = a.Favorito === true ? 1 : 0;
+                var bFav = b.Favorito === true ? 1 : 0;
+                if (aFav === bFav) return 0;
+                return bFav - aFav;
+            });
+            return aOrdenados;
+        },
+
+        onToggleFavorito: function (oEvent) {
+            var oButton = oEvent.getSource();
+            var oListItem = oButton.getParent();
+            var oContext = oListItem.getBindingContext("EvaluadoresModel");
+            if (!oContext) return;
+
+            var oEvaluador = oContext.getObject();
+            if (oEvaluador.Favorito === undefined) oEvaluador.Favorito = false;
+
+            var oModel = this.getView().getModel("EvaluadoresModel");
+            var aEvaluadores = oModel.getProperty("/EvaluadoresModel") || [];
+
+            var iFavoritosCount = aEvaluadores.filter(function (e) { return e.Favorito === true; }).length;
+
+            if (!oEvaluador.Favorito && iFavoritosCount >= 3) {
+                MessageBoxHelper.showAlert("Favoritos", "Solo puede tener hasta 3 evaluadores favoritos. Desmarque uno antes de agregar otro.");
+                return;
+            }
+
+            oEvaluador.Favorito = !oEvaluador.Favorito;
+
+            oModel.setProperty("/EvaluadoresModel", this._ordenarEvaluadoresPorFavoritos(aEvaluadores));
+            oModel.updateBindings(true);
+        },
+
+        onPressDeleteEvaluador: function (oEvaluadorPath) {
+            var oModel = this.getView().getModel("EvaluadoresModel");
+            var aEvaluadores = oModel.getProperty("/EvaluadoresModel") || [];
+            var index = parseInt(oEvaluadorPath.replace("/EvaluadoresModel/", ""), 10);
+
+            if (index >= 0 && index < aEvaluadores.length) {
+                aEvaluadores.splice(index, 1);
+                aEvaluadores.forEach(function (e) { if (e.Favorito === undefined) e.Favorito = false; });
+
+                oModel.setProperty("/EvaluadoresModel", this._ordenarEvaluadoresPorFavoritos(aEvaluadores));
+                oModel.updateBindings(true);
+            }
+        },
+
+        // ============================================================
+        // ✅ DIALOG con sap.ui.table.Table + selección por Legajo
+        // ============================================================
+        onDialogEvaluador: function () {
+            var oModel = this.getView().getModel("Evaluadores");
+            if (!oModel) {
+                oModel = new JSONModel({
+                    Evaluadores: [],
                     EvaluadoresCompletos: [],
                     SeleccionesGuardadas: [],
                     FilterValue: "",
-                    Busy: false 
+                    Busy: true
                 });
                 this.getView().setModel(oModel, "Evaluadores");
-                
-                // Inicializar el modelo EvaluadoresModel para la tabla principal
-                var oEvaluadoresModel = new JSONModel({ EvaluadoresModel: [] });
-                this.getView().setModel(oEvaluadoresModel, "EvaluadoresModel");
-                
-                // Inicializar el modelo FiltrosModel si no existe
-                if (!this.getView().getModel("FiltrosModel")) {
-                    var oFiltrosModel = new JSONModel({});
-                    this.getView().setModel(oFiltrosModel, "FiltrosModel");
-                }
-            },
-            getBaseURL: function () {
-                var appId = this.getOwnerComponent().getManifestEntry("/sap.app/id");
-
-                // Guardar el appId en un modelo por si se necesita
-                var appModel = ModelHelper.getModel("appModel", this.getView())
-                appModel.setData(appId);
-                sap.ui.getCore().setModel(appModel, "appId");
-
-                // Construir el path del módulo
-                var appPath = appId.replaceAll(".", "/");
-                var appModulePath = jQuery.sap.getModulePath(appPath);
-
-                // Crear o actualizar el modelo appCurrentInfo
-                var jsonModel = sap.ui.getCore().getModel("appCurrentInfo");
-                if (!jsonModel) {
-                    jsonModel = new JSONModel();
-                    jsonModel.setSizeLimit(9999);
-                    sap.ui.getCore().setModel(jsonModel, "appCurrentInfo");
-                }
-
-                // Setear la URL en el modelo
-                jsonModel.setData({
-                    appUrl: appModulePath
-                });
-
-                console.log("URL base de la aplicación configurada:", appModulePath);
-
-                return appModulePath;
-            },
-            InitModel: function () {
-                var oModel = new sap.ui.model.json.JSONModel();
-                this.getView().setModel(oModel, "FiltrosModel");
-            },
-            loadEvaluadores: function (filter) {
-                var oModel = this.getView().getModel("Evaluadores");
-                if (oModel) {
-                    oModel.setProperty("/Busy", true);
-                }
-                
-                PersonalInternoService.LoadSearch(
-                    filter || "",
-                    jQuery.proxy(this.onSuccessLoadEvaluadores, this),
-                    jQuery.proxy(this.onErrorLoadEvaluadores, this)
-                );
-            },
-            loadSociety: function () {
-                var that = this;
-
-                var empresa = "100";
-                // if (this.getView().getModel().getData().society === "TRANSENER") {
-                //     empresa = "100";
-                // } else {
-                //     empresa = "300";
-                // }
-                that.LoadRegionesModel(empresa);
-                /*			oModeld.read("/EmpresaUsuarioSet", {
-                                success: function (data) {
-                                    var empresa = data.results[0].Empresa;
-                                    that.LoadRegionesModel(empresa);
-                                },
-                                error: function (err) {
-                                    //do something;
-                                }
-                            });*/
-
-            },
-            handleDelete: function (oEvent) {
-                var oEvaluador = oEvent.getParameter("listItem").getBindingContext("EvaluadoresModel").getPath();
-                MessageBoxHelper.showConfirm("Eliminar Evaluador", "Desea eliminar a este evaluador?",
-                    jQuery.proxy(this.onPressDeleteEvaluador, this, oEvaluador)
-                );
-            },
-            _ordenarEvaluadoresPorFavoritos: function(aEvaluadores) {
-                if (!aEvaluadores || aEvaluadores.length === 0) {
-                    return aEvaluadores;
-                }
-                
-                // Crear una copia del array para no modificar el original directamente
-                var aOrdenados = aEvaluadores.slice();
-                
-                // Ordenar: favoritos primero, luego los demás
-                aOrdenados.sort(function(a, b) {
-                    var aFavorito = a.Favorito === true ? 1 : 0;
-                    var bFavorito = b.Favorito === true ? 1 : 0;
-                    
-                    // Si ambos son favoritos o ninguno, mantener el orden original
-                    if (aFavorito === bFavorito) {
-                        return 0;
-                    }
-                    
-                    // Los favoritos van primero (retornar negativo si a es favorito)
-                    return bFavorito - aFavorito;
-                });
-                
-                return aOrdenados;
-            },
-            onToggleFavorito: function (oEvent) {
-                var oButton = oEvent.getSource();
-                var oListItem = oButton.getParent();
-                var oContext = oListItem.getBindingContext("EvaluadoresModel");
-                
-                if (!oContext) {
-                    return;
-                }
-                
-                var sPath = oContext.getPath();
-                var oEvaluador = oContext.getObject();
-                
-                // Asegurar que el campo Favorito existe
-                if (oEvaluador.Favorito === undefined) {
-                    oEvaluador.Favorito = false;
-                }
-                
-                var oModel = this.getView().getModel("EvaluadoresModel");
-                var aEvaluadores = oModel.getProperty("/EvaluadoresModel") || [];
-                
-                // Contar favoritos actuales (excluyendo el actual si ya es favorito)
-                var iFavoritosCount = aEvaluadores.filter(function(evalu) {
-                    return evalu.Favorito === true;
-                }).length;
-                
-                // Si está intentando marcar como favorito y ya hay 3 favoritos
-                if (!oEvaluador.Favorito && iFavoritosCount >= 3) {
-                    MessageBoxHelper.showAlert("Favoritos", "Solo puede tener hasta 3 evaluadores favoritos. Desmarque uno antes de agregar otro.");
-                    return;
-                }
-                
-                // Toggle del estado de favorito
-                var bNuevoEstado = !oEvaluador.Favorito;
-                
-                // Actualizar el estado del favorito
-                oEvaluador.Favorito = bNuevoEstado;
-                
-                // Ordenar los evaluadores poniendo favoritos primero
-                var aEvaluadoresOrdenados = this._ordenarEvaluadoresPorFavoritos(aEvaluadores);
-                
-                // Actualizar el modelo con los evaluadores ordenados
-                oModel.setProperty("/EvaluadoresModel", aEvaluadoresOrdenados);
-                oModel.updateBindings(true);
-            },
-            onPressDeleteEvaluador: function (oEvaluador) {
-                var oModel = this.getView().getModel("EvaluadoresModel");
-                var aEvaluadores = oModel.getProperty("/EvaluadoresModel") || [];
-                var index = parseInt(oEvaluador.replace("/EvaluadoresModel/", ""));
-                
-                if (index >= 0 && index < aEvaluadores.length) {
-                    aEvaluadores.splice(index, 1);
-                    // Asegurar que todos los evaluadores tengan el campo Favorito
-                    aEvaluadores.forEach(function(evalu) {
-                        if (evalu.Favorito === undefined) {
-                            evalu.Favorito = false;
-                        }
-                    });
-                    
-                    // Ordenar los evaluadores poniendo favoritos primero
-                    var aEvaluadoresOrdenados = this._ordenarEvaluadoresPorFavoritos(aEvaluadores);
-                    
-                    oModel.setProperty("/EvaluadoresModel", aEvaluadoresOrdenados);
-                    oModel.updateBindings(true);
-                }
-            },
-            onDialogEvaluador: function () {
-                var that = this;
-                
-                // Obtener o crear el modelo Evaluadores
-                var oModel = this.getView().getModel("Evaluadores");
-                if (!oModel) {
-                    oModel = new JSONModel({ 
-                        Evaluadores: [], 
-                        EvaluadoresCompletos: [], // Copia completa para filtrado
-                        SeleccionesGuardadas: [], // Selecciones acumuladas durante la sesión
-                        FilterValue: "",
-                        Busy: true 
-                    });
-                    this.getView().setModel(oModel, "Evaluadores");
-                } else {
-                    oModel.setProperty("/Busy", true);
-                    // Inicializar selecciones guardadas si no existe
-                    if (!oModel.getProperty("/SeleccionesGuardadas")) {
-                        oModel.setProperty("/SeleccionesGuardadas", []);
-                    }
-                }
-                
-                // Cargar los datos del PersonalInternoService cuando se abre el Dialog (solo una vez)
-                // Si ya hay datos completos cargados, no volver a cargar
-                var aEvaluadoresCompletos = oModel.getProperty("/EvaluadoresCompletos") || [];
-                if (aEvaluadoresCompletos.length === 0) {
-                    this.loadEvaluadores();
-                } else {
-                    // Si ya hay datos, restaurar la lista completa y quitar el filtro
-                    oModel.setProperty("/Evaluadores", aEvaluadoresCompletos);
-                    oModel.setProperty("/FilterValue", "");
-                    oModel.setProperty("/Busy", false);
-                }
-                
-                this._dialog = new sap.m.Dialog({
-                    title: "Evaluadores",
-                    id: "oDialog",
-                    busy: "{Evaluadores>/Busy}",
-                    busyIndicatorDelay: 0,
-                    showHeader: true,
-                    stretch: true,
-                    afterClose: [this.afterCloseDialog, this],
-                    beginButton: new sap.m.Button({
-                        text: "Cancelar",
-                        tooltip: "Cancelar",
-                        press: [this.closeDialog, this]
-                    }),
-                    endButton: new sap.m.Button({
-                        text: "Aceptar",
-                        tooltip: "Aceptar",
-                        press: [this.selectedEvaluator, this]
-                    }),
-                    subHeader: new sap.m.Bar({
-                        contentMiddle: [
-                            new sap.m.SearchField({
-                                id: this.createId("oSearchEvaluadores"),
-                                placeholder: "Buscar por Legajo, Nombre o Apellido",
-                                search: [this.onSearchEvaluadores, this],
-                                liveChange: [this.onSearchEvaluadores, this],
-                                width: "100%",
-                                showSearchButton: true
-                            })
-                        ]
-                    }),
-                    content: [
-                        new sap.m.Table({
-                            id: this.createId("TableEvaluador"),
-                            fixedLayout: false,
-                            noDataText: "No hay evaluadores disponibles",
-                            busy: "{Evaluadores>/Busy}",
-                            busyIndicatorDelay: 0,
-                            mode: "MultiSelect",
-                            columns: [
-                                new sap.m.Column({
-                                    header: new sap.m.Title({
-                                        text: "Legajo",
-                                        design: "bold"
-                                    }),
-                                    width: "20%"
-                                }),
-                                new sap.m.Column({
-                                    header: new sap.m.Title({
-                                        text: "Nombre",
-                                        design: "bold"
-                                    }),
-                                    width: "40%"
-                                }),
-                                new sap.m.Column({
-                                    header: new sap.m.Title({
-                                        text: "Correo",
-                                        design: "bold"
-                                    }),
-                                    width: "40%"
-                                })
-                            ]
-                        }).bindItems({
-                            path: "Evaluadores>/Evaluadores",
-                            template: new sap.m.ColumnListItem({
-                                type: sap.m.ListType.None,
-                                press: [this.onEvaluadorPress, this],
-                                cells: [
-                                    new sap.m.Text({
-                                        text: "{Evaluadores>Legajo}"
-                                    }),
-                                    new sap.m.Text({
-                                        text: "{= ${Evaluadores>Nombre} + ' ' + ${Evaluadores>Apellido}}"
-                                    }),
-                                    new sap.m.Text({
-                                        text: "{Evaluadores>Correo}"
-                                    }),
-                                ]
-                            })
-                        })
-                    ]
-                });
-                
-                this._dialog.setModel(oModel, "Evaluadores");
-                this._dialog.open();
-            },
-
-            selectedEvaluator: function (oEvent) {
-                let oTableId = this.byId("TableEvaluador");
-                let aEvaluadores = [],
-                    sNombres = [],
-                    sPuser = [];
-
-                if (!oTableId || oTableId.getSelectedItems().length === 0) {
-                    MessageBoxHelper.showAlert("Equipo Evaluador", "Debe seleccionar al menos un evaluador.");
-                    return;
-                }
-
-                // Obtener el modelo de la tabla principal
-                var oEvaluadoresModel = this.getView().getModel("EvaluadoresModel");
-                var aEvaluadoresActuales = oEvaluadoresModel.getProperty("/EvaluadoresModel") || [];
-                
-                oTableId.getSelectedItems().forEach(function(obj) {
-                    var oContext = obj.getBindingContext("Evaluadores");
-                    if (!oContext) {
-                        // Si no hay binding context, intentar obtener el objeto directamente del item
-                        var oListItem = obj;
-                        var oData = oListItem.data ? oListItem.data() : null;
-                        if (!oData) {
-                            return; // Saltar este item si no se puede obtener el objeto
-                        }
-                        var oObject = oData;
-                    } else {
-                        var oObject = oContext.getObject();
-                    }
-                    
-                    if (!oObject || !oObject.Legajo) {
-                        return; // Saltar si no hay objeto válido o Legajo
-                    }
-                    
-                    let sLegajo = oObject.Legajo;
-                    let sNombreCompleto = (oObject.Nombre || "").trim() + " " + (oObject.Apellido || "").trim();
-
-                    // Verificar si el evaluador ya existe en la tabla principal
-                    var bExiste = aEvaluadoresActuales.some(function(evalu) {
-                        return evalu.Puser === sLegajo;
-                    });
-
-                    if (!bExiste) {
-                        let oDisplay = {
-                            Correo: oObject.Correo || "",
-                            Nombre: sNombreCompleto.trim(),
-                            Puser: sLegajo,
-                            Favorito: false
-                        };
-                        aEvaluadores.push(oDisplay);
-                        aEvaluadoresActuales.push(oDisplay);
-                        sNombres.push(sNombreCompleto.trim());
-                        sPuser.push(sLegajo);
-                    }
-                });
-
-                // Ordenar los evaluadores poniendo favoritos primero
-                var aEvaluadoresOrdenados = this._ordenarEvaluadoresPorFavoritos(aEvaluadoresActuales);
-                
-                // Actualizar el modelo de la tabla principal
-                oEvaluadoresModel.setProperty("/EvaluadoresModel", aEvaluadoresOrdenados);
-                oEvaluadoresModel.updateBindings(true);
-
-                this._dialog.close();
-
-                // Limpiar los campos del formulario después de agregar los evaluadores
-                var oFiltrosModel = this.getView().getModel("FiltrosModel");
-                if (oFiltrosModel) {
-                    oFiltrosModel.setProperty("/Puser", "");
-                    oFiltrosModel.setProperty("/Nombre", "");
-                    oFiltrosModel.updateBindings(true);
-                }
-            },
-
-            onEvaluadorPress: function (oEvent) {
-                var Evaluadores = oEvent.getSource().getBindingContext("Evaluadores").getObject();
-                var oData = this.getView().getModel("FiltrosModel").getData();
-                oData.Nombre = Evaluadores.display;
-                oData.Puser = Evaluadores.value;
-                oData.Correo = Evaluadores.Email;
-                this.getView().getModel("FiltrosModel").updateBindings(true);
-                this._dialog.close();
-            },
-            closeDialog: function () {
-                this._dialog.close();
-            },
-            afterCloseDialog: function () {
-                // Limpiar las selecciones guardadas al cerrar el dialog
-                var oModel = this.getView().getModel("Evaluadores");
-                if (oModel) {
-                    oModel.setProperty("/SeleccionesGuardadas", []);
-                    oModel.setProperty("/FilterValue", "");
-                }
-                
-                this._dialog.destroy();
-                this._dialog = null;
-            },
-            onSaveEvaluador: function () {
-                var oEvaluadoresModel = this.getView().getModel("EvaluadoresModel");
-                var aEvaluadores = oEvaluadoresModel.getProperty("/EvaluadoresModel") || [];
-                
-                if (aEvaluadores.length === 0) {
-                    MessageBoxHelper.showAlert("Equipo Evaluador", "No hay evaluadores seleccionados. Por favor, seleccione al menos un evaluador desde el diálogo.");
-                    return;
-                }
-                
-                // Contar favoritos
-                var aFavoritos = aEvaluadores.filter(function(evalu) {
-                    return evalu.Favorito === true;
-                });
-                
-                var sMensaje = "Se guardaron " + aEvaluadores.length + " evaluador(es)";
-                if (aFavoritos.length > 0) {
-                    sMensaje += " (" + aFavoritos.length + " favorito(s))";
-                }
-                sMensaje += ".";
-                
-                MessageBoxHelper.showAlert("Equipo Evaluador", sMensaje);
-            },
-            validateEvaluador: function () {
-                var oModel = this.getView().getModel("EvaluadoresModel");
-                if (!oModel) {
-                    return true;
-                }
-                var aEvaluadores = oModel.getProperty("/EvaluadoresModel") || [];
-                var evaluador = this.getView().getModel("FiltrosModel").getData();
-                
-                if (!evaluador || !evaluador.Puser) {
-                    return true;
-                }
-                
-                for (var i = 0; i < aEvaluadores.length; i++) {
-                    if (aEvaluadores[i].Puser === evaluador.Puser) {
-                        return false;
-                    }
-                }
-                return true;
-            },
-            onClearFilters: function () {
-                this.getView().getModel("FiltrosModel").setData({});
-            },
-            formatSwitch: function (checkInt) {
-                if (checkInt) {
-                    this.getView().byId("labelLegajo").setVisible(true);
-                    this.getView().byId("inputLegajo").setVisible(true);
-                }
-                return checkInt;
-            },
-            LoadFuncionesModel: function () {
-                var Funciones = [{
-                    "Codigo": "PE1",
-                    "Funcion": "Jefe de Turno del COT"
-                }, {
-                    "Codigo": "PE2",
-                    "Funcion": "Operador de Turno del COT."
-                }, {
-                    "Codigo": "PE3",
-                    "Funcion": "Operador de Apoyo del COT."
-                }, {
-                    "Codigo": "PE4",
-                    "Funcion": "Operador del Centro Regional."
-                }, {
-                    "Codigo": "PE5",
-                    "Funcion": "Técnico de Estaciones Transformadoras."
-                }, {
-                    "Codigo": "PB1",
-                    "Funcion": "Jefe de Turno del COTDT"
-                }, {
-                    "Codigo": "PB2",
-                    "Funcion": "Operador del COTDT"
-                }, {
-                    "Codigo": "PB3",
-                    "Funcion": "Operador de los Centros Operativos Regionales"
-                }, {
-                    "Codigo": "PB4",
-                    "Funcion": "Técnico de Estaciones Transformadoras"
-                }];
-                var oModel = new sap.ui.model.json.JSONModel();
-                oModel.setData({
-                    Funciones: Funciones
-                });
-                this.getView().setModel(oModel, "Funciones");
-            },
-            LoadRegionesModel: function (empresa) {
-                RegionService.LoadRegiones(
-                    empresa,
-                    jQuery.proxy(this.onSuccessRegion, this),
-                    jQuery.proxy(this.onErrorRegion, this)
-                );
-            },
-            onSuccessRegion: function (data) {
-                var Regiones = data.results;
-                var oModel = new sap.ui.model.json.JSONModel();
-                oModel.setData({
-                    Regiones: Regiones
-                });
-                this.getView().setModel(oModel, "Regiones");
-            },
-            onErrorRegion: function (error) {
-
-            },
-            getEmpresa: function () {
-                var taskId = this.getView().getModel("FiltrosModel").id;
-                var contextModel = new sap.ui.model.json.JSONModel();
-                contextModel.attachRequestCompleted(this, this.successCallbackReg);
-                contextModel.loadData("/bpmworkflowruntime/rest/v1/task-instances/" + taskId + "/context", "", true);
-            },
-
-            successCallbackReg: function (data, Component) {
-                var UserData = data.oSource.oData;
-                var oModel = new sap.ui.model.json.JSONModel();
-                oModel.setData(UserData);
-                Component.setModel(oModel, "datosWF");
-            },
-
-            LoadIntervenciones: function (Idhabilitacion) {
-                this.loadSociety();
-            },
-
-            onSearchEvaluadores: function (oEvent) {
-                var sSearchValue = "";
-                var oSearchField = oEvent.getSource();
-                var oTable = this.byId("TableEvaluador");
-                var oModel = this.getView().getModel("Evaluadores");
-                
-                if (!oModel) {
-                    return;
-                }
-                
-                // Obtener el valor del search field PRIMERO para saber si se está limpiando
-                if (oEvent.getParameter) {
-                    // Para liveChange, usar newValue (incluye cuando se limpia con la cruz)
-                    sSearchValue = oEvent.getParameter("newValue");
-                    // Para search, usar query
-                    if (sSearchValue === undefined) {
-                        sSearchValue = oEvent.getParameter("query");
-                    }
-                }
-                
-                // Si no hay parámetro, obtener directamente del campo
-                if (sSearchValue === undefined || sSearchValue === null) {
-                    if (oSearchField && oSearchField.getValue) {
-                        sSearchValue = oSearchField.getValue() || "";
-                    }
-                }
-                
-                // Asegurar que sea string
-                sSearchValue = (sSearchValue || "").toString().trim();
-                
-                // Obtener las selecciones guardadas acumuladas
-                var aSeleccionesGuardadas = oModel.getProperty("/SeleccionesGuardadas") || [];
-                
-                // SIEMPRE guardar las selecciones actuales ANTES de hacer cambios (si hay tabla disponible)
-                if (oTable) {
-                    var aSeleccionesActuales = [];
-                    var aSelectedItems = oTable.getSelectedItems();
-                    
-                    // Solo guardar si hay items seleccionados (para evitar sobrescribir con array vacío)
-                    if (aSelectedItems.length > 0) {
-                        aSelectedItems.forEach(function(oItem) {
-                            var oContext = oItem.getBindingContext("Evaluadores");
-                            if (oContext) {
-                                var oObject = oContext.getObject();
-                                if (oObject && oObject.Legajo) {
-                                    var sLegajo = oObject.Legajo;
-                                    if (aSeleccionesActuales.indexOf(sLegajo) === -1) {
-                                        aSeleccionesActuales.push(sLegajo);
-                                    }
-                                }
-                            }
-                        });
-                        
-                        // Combinar con las selecciones guardadas anteriormente
-                        aSeleccionesActuales.forEach(function(sLegajo) {
-                            if (aSeleccionesGuardadas.indexOf(sLegajo) === -1) {
-                                aSeleccionesGuardadas.push(sLegajo);
-                            }
-                        });
-                        
-                        // Guardar las selecciones actualizadas solo si hay selecciones actuales
-                        oModel.setProperty("/SeleccionesGuardadas", aSeleccionesGuardadas);
-                    }
-                }
-                // Si no hay selecciones actuales (por ejemplo, cuando se hace clic en la cruz),
-                // mantener las selecciones guardadas sin modificarlas
-                
-                // Limpiar TODAS las selecciones ANTES de actualizar el binding
-                // Esto evita que se mantengan selecciones por índice
-                if (oTable) {
-                    try {
-                        // Intentar limpiar todas las selecciones
-                        var aCurrentItems = oTable.getItems();
-                        aCurrentItems.forEach(function(oItem) {
-                            if (oItem.getSelected && oItem.getSelected()) {
-                                oTable.setSelectedItem(oItem, false);
-                            }
-                        });
-                    } catch (e) {
-                        console.warn("Error al limpiar selecciones:", e);
-                    }
-                }
-                
-                // Filtrar localmente sobre los datos ya cargados
-                var aEvaluadoresCompletos = oModel.getProperty("/EvaluadoresCompletos") || [];
-                
-                if (!sSearchValue || sSearchValue === "") {
-                    // Si el filtro está vacío (incluye cuando se hace clic en la cruz), mostrar todos
-                    oModel.setProperty("/Evaluadores", aEvaluadoresCompletos);
-                    oModel.setProperty("/FilterValue", "");
-                } else {
-                    // Filtrar localmente
-                    var sFilterLower = sSearchValue.toLowerCase();
-                    var aFiltrados = aEvaluadoresCompletos.filter(function(evaluador) {
-                        var sNombre = (evaluador.Nombre || "").toLowerCase();
-                        var sApellido = (evaluador.Apellido || "").toLowerCase();
-                        var sLegajo = (evaluador.Legajo || "").toLowerCase();
-                        return sNombre.indexOf(sFilterLower) !== -1 || 
-                               sApellido.indexOf(sFilterLower) !== -1 || 
-                               sLegajo.indexOf(sFilterLower) !== -1;
-                    });
-                    oModel.setProperty("/Evaluadores", aFiltrados);
-                    oModel.setProperty("/FilterValue", sSearchValue);
-                }
-                
-                // Guardar las selecciones antes de actualizar el binding
-                var aSeleccionesParaRestaurar = aSeleccionesGuardadas.slice();
-                
-                oModel.updateBindings(true);
-                
-                // Restaurar las selecciones después de que el binding se actualice
-                var that = this;
-                var fnRestoreSelections = function() {
-                    if (!oTable) {
-                        return;
-                    }
-                    
-                    var aItems = oTable.getItems();
-                    var aSelecciones = aSeleccionesParaRestaurar;
-                    
-                    if (aItems.length === 0) {
-                        return;
-                    }
-                    
-                    // Si no hay selecciones para restaurar, no hacer nada
-                    if (!aSelecciones || aSelecciones.length === 0) {
-                        return;
-                    }
-                    
-                    // Asegurarse de que todos los items tengan binding context válido
-                    var aItemsValidos = [];
-                    aItems.forEach(function(oItem) {
-                        var oContext = oItem.getBindingContext("Evaluadores");
-                        if (oContext) {
-                            try {
-                                var oObject = oContext.getObject();
-                                if (oObject && oObject.Legajo) {
-                                    aItemsValidos.push({
-                                        item: oItem,
-                                        legajo: oObject.Legajo
-                                    });
-                                }
-                            } catch (e) {
-                                // Ignorar items sin binding válido
-                            }
-                        }
-                    });
-                    
-                    // Primero, asegurarse de que NO hay selecciones por defecto
-                    aItemsValidos.forEach(function(oItemData) {
-                        try {
-                            if (oItemData.item.getSelected && oItemData.item.getSelected()) {
-                                oTable.setSelectedItem(oItemData.item, false);
-                            }
-                        } catch (e) {
-                            // Ignorar errores al deseleccionar
-                        }
-                    });
-                    
-                    // Pequeña pausa para asegurar que las deselecciones se procesen
-                    setTimeout(function() {
-                        // Luego, seleccionar SOLO los items que corresponden a los Legajos guardados
-                        aItemsValidos.forEach(function(oItemData) {
-                            try {
-                                if (aSelecciones.indexOf(oItemData.legajo) !== -1) {
-                                    oTable.setSelectedItem(oItemData.item, true);
-                                }
-                            } catch (e) {
-                                // Ignorar errores al seleccionar
-                            }
-                        });
-                    }, 50);
-                };
-                
-                // Usar el evento updateFinished del binding
-                var oBinding = oTable ? oTable.getBinding("items") : null;
-                if (oBinding) {
-                    // Detener cualquier listener previo del mismo tipo
-                    oBinding.detachEvent("updateFinished", fnRestoreSelections);
-                    oBinding.attachEventOnce("updateFinished", fnRestoreSelections);
-                } else {
-                    // Fallback: usar setTimeout con múltiples intentos
-                    var iAttempts = 0;
-                    var fnTryRestore = function() {
-                        iAttempts++;
-                        var aItems = oTable ? oTable.getItems() : [];
-                        if (aItems.length > 0) {
-                            fnRestoreSelections();
-                        } else if (iAttempts < 10) {
-                            setTimeout(fnTryRestore, 50);
-                        }
-                    };
-                    setTimeout(fnTryRestore, 100);
-                }
-            },
-            onSuccessLoadEvaluadores: function (response) {
-                var aEvaluadores = response.results || [];
-                
-                // Crear o actualizar el modelo Evaluadores
-                var oModel = this.getView().getModel("Evaluadores");
-                if (!oModel) {
-                    oModel = new JSONModel({ 
-                        Evaluadores: [], 
-                        EvaluadoresCompletos: [],
-                        SeleccionesGuardadas: [],
-                        FilterValue: "",
-                        Busy: false 
-                    });
-                    this.getView().setModel(oModel, "Evaluadores");
-                }
-                
-                // Guardar la copia completa de todos los evaluadores
-                oModel.setProperty("/EvaluadoresCompletos", aEvaluadores);
-                oModel.setProperty("/Evaluadores", aEvaluadores);
-                oModel.setProperty("/FilterValue", "");
-                // Inicializar selecciones guardadas si no existe
+            } else {
+                oModel.setProperty("/Busy", true);
                 if (!oModel.getProperty("/SeleccionesGuardadas")) {
                     oModel.setProperty("/SeleccionesGuardadas", []);
                 }
+            }
+
+            var aAll = oModel.getProperty("/EvaluadoresCompletos") || [];
+            if (aAll.length === 0) {
+                this.loadEvaluadores();
+            } else {
+                // ✅ al abrir, mostrar todo y restaurar selecciones
+                this._bSuppressSelectionSync = true;
+                oModel.setProperty("/Evaluadores", aAll);
+                oModel.setProperty("/FilterValue", "");
                 oModel.setProperty("/Busy", false);
-                
-                // Si el Dialog está abierto, actualizar su modelo también
-                if (this._dialog) {
-                    this._dialog.setModel(oModel, "Evaluadores");
-                    // Actualizar también el binding de la tabla
-                    var oTable = this.byId("TableEvaluador");
-                    if (oTable) {
-                        var oBinding = oTable.getBinding("items");
-                        if (oBinding) {
-                            oBinding.refresh();
-                        }
+            }
+
+            var that = this;
+
+            var oUiTable = new UiTable({
+                id: this.createId("UiTableEvaluador"),
+                visibleRowCountMode: sap.ui.table.VisibleRowCountMode.Auto,
+                minAutoRowCount: 8,
+                selectionMode: sap.ui.table.SelectionMode.MultiToggle,
+                selectionBehavior: sap.ui.table.SelectionBehavior.Row,
+                enableBusyIndicator: true,
+                busy: "{Evaluadores>/Busy}",
+
+                // ✅ NO pisar SeleccionesGuardadas cuando la tabla resetea por filtro/refresh
+                rowSelectionChange: function (oEvent) {
+                    if (that._bSuppressSelectionSync) return;
+
+                    // Si está disponible, solo guardar cuando el usuario hizo click real
+                    if (oEvent && oEvent.getParameter && oEvent.getParameter("userInteraction") === false) {
+                        return;
+                    }
+
+                    that._syncSelectionFromUiTable();
+                },
+
+                columns: [
+                    new UiColumn({
+                        width: "14rem",
+                        label: new Label({ text: "Legajo" }),
+                        template: new Text({ text: "{Evaluadores>Legajo}" }),
+                        sortProperty: "Legajo"
+                    }),
+                    new UiColumn({
+                        width: "22rem",
+                        label: new Label({ text: "Nombre" }),
+                        template: new Text({ text: "{= ${Evaluadores>Nombre} + ' ' + ${Evaluadores>Apellido}}" }),
+                        sortProperty: "Nombre"
+                    }),
+                    new UiColumn({
+                        width: "26rem",
+                        label: new Label({ text: "Correo" }),
+                        template: new Text({ text: "{Evaluadores>Correo}" }),
+                        sortProperty: "Correo"
+                    })
+                ]
+            });
+
+            oUiTable.bindRows("Evaluadores>/Evaluadores");
+
+            this._dialog = new Dialog({
+                title: "Evaluadores",
+                id: this.createId("oDialog"),
+                stretch: true,
+                busy: "{Evaluadores>/Busy}",
+                busyIndicatorDelay: 0,
+                afterClose: [this.afterCloseDialog, this],
+
+                beginButton: new Button({
+                    text: "Cancelar",
+                    tooltip: "Cancelar",
+                    press: [this.closeDialog, this]
+                }),
+                endButton: new Button({
+                    text: "Aceptar",
+                    tooltip: "Aceptar",
+                    press: [this.selectedEvaluatorFromUiTable, this]
+                }),
+
+                subHeader: new Bar({
+                    contentMiddle: [
+                        new SearchField({
+                            id: this.createId("oSearchEvaluadores"),
+                            placeholder: "Buscar por Legajo, Nombre o Apellido",
+                            width: "100%",
+                            showSearchButton: true,
+                            liveChange: [this.onSearchEvaluadoresUiTable, this],
+                            search: [this.onSearchEvaluadoresUiTable, this]
+                        })
+                    ]
+                }),
+
+                content: [oUiTable]
+            });
+
+            this._dialog.setModel(oModel, "Evaluadores");
+            this._dialog.open();
+
+            // ✅ restaurar selección por Legajo después de render/binding
+            setTimeout(function () {
+                that._restoreSelectionToUiTable();
+            }, 0);
+        },
+
+        closeDialog: function () {
+            if (this._dialog) this._dialog.close();
+        },
+
+        afterCloseDialog: function () {
+            var oModel = this.getView().getModel("Evaluadores");
+            if (oModel) {
+                // si querés que al reabrir NO recuerde selección, descomentá:
+                // oModel.setProperty("/SeleccionesGuardadas", []);
+                oModel.setProperty("/FilterValue", "");
+            }
+
+            if (this._dialog) {
+                this._dialog.destroy();
+                this._dialog = null;
+            }
+        },
+
+        _syncSelectionFromUiTable: function () {
+            var oModel = this.getView().getModel("Evaluadores");
+            var oTable = this.byId("UiTableEvaluador");
+            if (!oModel || !oTable) return;
+
+            var aSelIdx = oTable.getSelectedIndices() || [];
+            var aLegajos = [];
+
+            aSelIdx.forEach(function (iRow) {
+                var oCtx = oTable.getContextByIndex(iRow);
+                if (oCtx) {
+                    var oObj = oCtx.getObject();
+                    if (oObj && oObj.Legajo) aLegajos.push(oObj.Legajo);
+                }
+            });
+
+            // dedupe
+            aLegajos = aLegajos.filter(function (v, i, a) { return a.indexOf(v) === i; });
+
+            oModel.setProperty("/SeleccionesGuardadas", aLegajos);
+        },
+
+        _restoreSelectionToUiTable: function () {
+            var oModel = this.getView().getModel("Evaluadores");
+            var oTable = this.byId("UiTableEvaluador");
+            if (!oModel || !oTable) return;
+
+            var aLegajos = oModel.getProperty("/SeleccionesGuardadas") || [];
+
+            // ✅ suprimir sync mientras tocamos selección programáticamente
+            this._bSuppressSelectionSync = true;
+
+            oTable.clearSelection();
+
+            if (aLegajos.length) {
+                var oBinding = oTable.getBinding("rows");
+                var iTotal = oBinding ? oBinding.getLength() : 0;
+
+                for (var i = 0; i < iTotal; i++) {
+                    var oCtx = oTable.getContextByIndex(i);
+                    if (!oCtx) continue;
+
+                    var oObj = oCtx.getObject();
+                    if (oObj && oObj.Legajo && aLegajos.indexOf(oObj.Legajo) !== -1) {
+                        oTable.addSelectionInterval(i, i);
                     }
                 }
-            },
-
-            onErrorLoadEvaluadores: function (error) {
-                console.error("Error al cargar evaluadores:", error);
-                MessageBoxHelper.showAlert("Error", "No se pudieron cargar los evaluadores. Por favor, intente nuevamente.");
-                
-                var oModel = this.getView().getModel("Evaluadores");
-                if (oModel) {
-                    oModel.setProperty("/Busy", false);
-                }
             }
-        });
+
+            var that = this;
+            setTimeout(function () {
+                that._bSuppressSelectionSync = false;
+            }, 0);
+        },
+
+        onSearchEvaluadoresUiTable: function (oEvent) {
+            var oModel = this.getView().getModel("Evaluadores");
+            if (!oModel) return;
+
+            var sSearchValue = "";
+            if (oEvent.getParameter) {
+                sSearchValue = oEvent.getParameter("newValue");
+                if (sSearchValue === undefined) sSearchValue = oEvent.getParameter("query");
+            }
+            sSearchValue = (sSearchValue || "").toString().trim();
+
+            var aAll = oModel.getProperty("/EvaluadoresCompletos") || [];
+
+            // ✅ clave: mientras cambiamos dataset por filtro/clear, NO sync selección (evita guardar [])
+            this._bSuppressSelectionSync = true;
+
+            if (!sSearchValue) {
+                oModel.setProperty("/Evaluadores", aAll);
+                oModel.setProperty("/FilterValue", "");
+            } else {
+                var q = sSearchValue.toLowerCase();
+                var aFiltered = aAll.filter(function (e) {
+                    var n = (e.Nombre || "").toLowerCase();
+                    var a = (e.Apellido || "").toLowerCase();
+                    var l = (e.Legajo || "").toLowerCase();
+                    return n.indexOf(q) !== -1 || a.indexOf(q) !== -1 || l.indexOf(q) !== -1;
+                });
+                oModel.setProperty("/Evaluadores", aFiltered);
+                oModel.setProperty("/FilterValue", sSearchValue);
+            }
+
+            var that = this;
+            setTimeout(function () {
+                // _restoreSelectionToUiTable vuelve a habilitar sync al final
+                that._restoreSelectionToUiTable();
+            }, 0);
+        },
+
+        selectedEvaluatorFromUiTable: function () {
+            var oTable = this.byId("UiTableEvaluador");
+            var oEvalModel = this.getView().getModel("EvaluadoresModel");
+
+            if (!oTable || !oEvalModel) {
+                MessageBoxHelper.showAlert("Equipo Evaluador", "No se pudo acceder a la tabla/modelos.");
+                return;
+            }
+
+            var aSelIdx = oTable.getSelectedIndices() || [];
+            if (aSelIdx.length === 0) {
+                MessageBoxHelper.showAlert("Equipo Evaluador", "Debe seleccionar al menos un evaluador.");
+                return;
+            }
+
+            var aActuales = oEvalModel.getProperty("/EvaluadoresModel") || [];
+
+            aSelIdx.forEach(function (iRow) {
+                var oCtx = oTable.getContextByIndex(iRow);
+                if (!oCtx) return;
+
+                var oObj = oCtx.getObject();
+                if (!oObj || !oObj.Legajo) return;
+
+                var sLegajo = oObj.Legajo;
+                var sNombreCompleto = ((oObj.Nombre || "").trim() + " " + (oObj.Apellido || "").trim()).trim();
+
+                var bExiste = aActuales.some(function (e) { return e.Puser === sLegajo; });
+                if (!bExiste) {
+                    aActuales.push({
+                        Correo: oObj.Correo || "",
+                        Nombre: sNombreCompleto,
+                        Puser: sLegajo,
+                        Favorito: false
+                    });
+                }
+            });
+
+            oEvalModel.setProperty("/EvaluadoresModel", this._ordenarEvaluadoresPorFavoritos(aActuales));
+            oEvalModel.updateBindings(true);
+
+            this.closeDialog();
+
+            var oFiltrosModel = this.getView().getModel("FiltrosModel");
+            if (oFiltrosModel) {
+                oFiltrosModel.setProperty("/Puser", "");
+                oFiltrosModel.setProperty("/Nombre", "");
+                oFiltrosModel.updateBindings(true);
+            }
+        },
+
+        // ============================================================
+        // Resto (servicios / modelos)
+        // ============================================================
+        onSaveEvaluador: function () {
+            var oEvaluadoresModel = this.getView().getModel("EvaluadoresModel");
+            var aEvaluadores = oEvaluadoresModel.getProperty("/EvaluadoresModel") || [];
+
+            if (aEvaluadores.length === 0) {
+                MessageBoxHelper.showAlert("Equipo Evaluador", "No hay evaluadores seleccionados. Por favor, seleccione al menos un evaluador desde el diálogo.");
+                return;
+            }
+
+            var aFavoritos = aEvaluadores.filter(function (e) { return e.Favorito === true; });
+            var sMensaje = "Se guardaron " + aEvaluadores.length + " evaluador(es)";
+            if (aFavoritos.length > 0) sMensaje += " (" + aFavoritos.length + " favorito(s))";
+            sMensaje += ".";
+
+            MessageBoxHelper.showAlert("Equipo Evaluador", sMensaje);
+        },
+
+        validateEvaluador: function () {
+            var oModel = this.getView().getModel("EvaluadoresModel");
+            if (!oModel) return true;
+
+            var aEvaluadores = oModel.getProperty("/EvaluadoresModel") || [];
+            var evaluador = this.getView().getModel("FiltrosModel").getData();
+            if (!evaluador || !evaluador.Puser) return true;
+
+            for (var i = 0; i < aEvaluadores.length; i++) {
+                if (aEvaluadores[i].Puser === evaluador.Puser) return false;
+            }
+            return true;
+        },
+
+        onClearFilters: function () {
+            this.getView().getModel("FiltrosModel").setData({});
+        },
+
+        LoadRegionesModel: function (empresa) {
+            RegionService.LoadRegiones(
+                empresa,
+                jQuery.proxy(this.onSuccessRegion, this),
+                jQuery.proxy(this.onErrorRegion, this)
+            );
+        },
+
+        onSuccessRegion: function (data) {
+            var oModel = new JSONModel({ Regiones: data.results || [] });
+            this.getView().setModel(oModel, "Regiones");
+        },
+
+        onErrorRegion: function () { },
+
+        onSuccessLoadEvaluadores: function (response) {
+            var aEvaluadores = (response && response.results) ? response.results : [];
+
+            var oModel = this.getView().getModel("Evaluadores");
+            if (!oModel) {
+                oModel = new JSONModel({
+                    Evaluadores: [],
+                    EvaluadoresCompletos: [],
+                    SeleccionesGuardadas: [],
+                    FilterValue: "",
+                    Busy: false
+                });
+                this.getView().setModel(oModel, "Evaluadores");
+            }
+
+            oModel.setProperty("/EvaluadoresCompletos", aEvaluadores);
+            oModel.setProperty("/Evaluadores", aEvaluadores);
+            oModel.setProperty("/FilterValue", "");
+            if (!oModel.getProperty("/SeleccionesGuardadas")) oModel.setProperty("/SeleccionesGuardadas", []);
+            oModel.setProperty("/Busy", false);
+
+            // si el dialog está abierto, restaurar selección
+            var that = this;
+            setTimeout(function () {
+                that._restoreSelectionToUiTable();
+            }, 0);
+        },
+
+        onErrorLoadEvaluadores: function (error) {
+            console.error("Error al cargar evaluadores:", error);
+            MessageBoxHelper.showAlert("Error", "No se pudieron cargar los evaluadores. Por favor, intente nuevamente.");
+
+            var oModel = this.getView().getModel("Evaluadores");
+            if (oModel) oModel.setProperty("/Busy", false);
+        }
+
     });
+});
