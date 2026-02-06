@@ -1,0 +1,51 @@
+<core:FragmentDefinition xmlns="sap.m" xmlns:core="sap.ui.core">
+	<Dialog id="oDialogEvaluadores" title="Evaluadores" busy="{Evaluadores>/Busy}" busyIndicatorDelay="0" 
+		showHeader="true" stretch="true" afterClose="afterCloseDialog">
+		<beginButton>
+			<Button text="Cancelar" tooltip="Cancelar" press="closeDialog"/>
+		</beginButton>
+		<endButton>
+			<Button text="Aceptar" tooltip="Aceptar" press="selectedEvaluator"/>
+		</endButton>
+		<subHeader>
+			<Bar>
+				<contentMiddle>
+					<SearchField id="oSearchEvaluadores" placeholder="Buscar por Legajo, Nombre o Apellido" 
+						search="onSearchEvaluadores" liveChange="onSearchEvaluadores" width="100%" showSearchButton="true"/>
+				</contentMiddle>
+			</Bar>
+		</subHeader>
+		<content>
+			<Table id="TableEvaluador" fixedLayout="false" noDataText="No hay evaluadores disponibles" 
+				busy="{Evaluadores>/Busy}" busyIndicatorDelay="0" mode="MultiSelect"
+				items="{path: 'Evaluadores>/Evaluadores'}">
+				<columns>
+					<Column width="20%">
+						<header>
+							<Title text="Legajo" design="Bold"/>
+						</header>
+					</Column>
+					<Column width="40%">
+						<header>
+							<Title text="Nombre" design="Bold"/>
+						</header>
+					</Column>
+					<Column width="40%">
+						<header>
+							<Title text="Correo" design="Bold"/>
+						</header>
+					</Column>
+				</columns>
+				<items>
+					<ColumnListItem type="None" press="onEvaluadorPress">
+						<cells>
+							<Text text="{Evaluadores>Legajo}"/>
+							<Text text="{= ${Evaluadores>Nombre} + ' ' + ${Evaluadores>Apellido}}"/>
+							<Text text="{Evaluadores>Correo}"/>
+						</cells>
+					</ColumnListItem>
+				</items>
+			</Table>
+		</content>
+	</Dialog>
+</core:FragmentDefinition>

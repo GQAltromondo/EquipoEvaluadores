@@ -231,94 +231,45 @@ sap.ui.define([
                     oModel.setProperty("/Busy", false);
                 }
                 
-                this._dialog = new sap.m.Dialog({
-                    title: "Evaluadores",
-                    id: "oDialog",
-                    busy: "{Evaluadores>/Busy}",
-                    busyIndicatorDelay: 0,
-                    showHeader: true,
-                    stretch: true,
-                    afterClose: [this.afterCloseDialog, this],
-                    beginButton: new sap.m.Button({
-                        text: "Cancelar",
-                        tooltip: "Cancelar",
-                        press: [this.closeDialog, this]
-                    }),
-                    endButton: new sap.m.Button({
-                        text: "Aceptar",
-                        tooltip: "Aceptar",
-                        press: [this.selectedEvaluator, this]
-                    }),
-                    subHeader: new sap.m.Bar({
-                        contentMiddle: [
-                            new sap.m.SearchField({
-                                id: this.createId("oSearchEvaluadores"),
-                                placeholder: "Buscar por Legajo, Nombre o Apellido",
-                                search: [this.onSearchEvaluadores, this],
-                                liveChange: [this.onSearchEvaluadores, this],
-                                width: "100%",
-                                showSearchButton: true
-                            })
-                        ]
-                    }),
-                    content: [
-                        new sap.m.Table({
-                            id: this.createId("TableEvaluador"),
-                            fixedLayout: false,
-                            noDataText: "No hay evaluadores disponibles",
-                            busy: "{Evaluadores>/Busy}",
-                            busyIndicatorDelay: 0,
-                            mode: "MultiSelect",
-                            columns: [
-                                new sap.m.Column({
-                                    header: new sap.m.Title({
-                                        text: "Legajo",
-                                        design: "bold"
-                                    }),
-                                    width: "20%"
-                                }),
-                                new sap.m.Column({
-                                    header: new sap.m.Title({
-                                        text: "Nombre",
-                                        design: "bold"
-                                    }),
-                                    width: "40%"
-                                }),
-                                new sap.m.Column({
-                                    header: new sap.m.Title({
-                                        text: "Correo",
-                                        design: "bold"
-                                    }),
-                                    width: "40%"
-                                })
-                            ]
-                        }).bindItems({
-                            path: "Evaluadores>/Evaluadores",
-                            template: new sap.m.ColumnListItem({
-                                type: sap.m.ListType.None,
-                                press: [this.onEvaluadorPress, this],
-                                cells: [
-                                    new sap.m.Text({
-                                        text: "{Evaluadores>Legajo}"
-                                    }),
-                                    new sap.m.Text({
-                                        text: "{= ${Evaluadores>Nombre} + ' ' + ${Evaluadores>Apellido}}"
-                                    }),
-                                    new sap.m.Text({
-                                        text: "{Evaluadores>Correo}"
-                                    }),
-                                ]
-                            })
-                        })
-                    ]
-                });
+                // Cargar el fragment si no existe
+                if (!this._oDialogEvaluadores) {
+                    this._oDialogEvaluadores = sap.ui.core.Fragment.load({
+                        id: this.getView().getId(),
+                        name: "transener.equipoevaluador.fragment.DialogEvaluadores",
+                        controller: this
+                    }).then(function (oDialog) {
+                        that.getView().addDependent(oDialog);
+                        return oDialog;
+                    });
+                }
                 
-                this._dialog.setModel(oModel, "Evaluadores");
-                this._dialog.open();
+                // Asignar el modelo y abrir el dialog
+                this._oDialogEvaluadores.then(function(oDialog) {
+                    oDialog.setModel(oModel, "Evaluadores");
+                    oDialog.open();
+                });
             },
 
+            _getDialogEvaluadores: function() {
+                return this._oDialogEvaluadores ? this._oDialogEvaluadores.then(function(oDialog) {
+                    return oDialog;
+                }) : null;
+            },
+            _getTableEvaluador: function() {
+                var that = this;
+                if (this._oDialogEvaluadores) {
+                    return this._oDialogEvaluadores.then(function(oDialog) {
+                        return oDialog.byId("TableEvaluador");
+                    });
+                }
+                return Promise.resolve(null);
+            },
             selectedEvaluator: function (oEvent) {
-                let oTableId = this.byId("TableEvaluador");
+                var that = this;
+                this._getTableEvaluador().then(function(oTableId) {
+                    if (!oTableId) {
+                        return;
+                    }
                 let aEvaluadores = [],
                     sNombres = [],
                     sPuser = [];
@@ -391,16 +342,26 @@ sap.ui.define([
             },
 
             onEvaluadorPress: function (oEvent) {
+                var that = this;
                 var Evaluadores = oEvent.getSource().getBindingContext("Evaluadores").getObject();
                 var oData = this.getView().getModel("FiltrosModel").getData();
                 oData.Nombre = Evaluadores.display;
                 oData.Puser = Evaluadores.value;
                 oData.Correo = Evaluadores.Email;
                 this.getView().getModel("FiltrosModel").updateBindings(true);
-                this._dialog.close();
+                
+                if (this._oDialogEvaluadores) {
+                    this._oDialogEvaluadores.then(function(oDialog) {
+                        oDialog.close();
+                    });
+                }
             },
             closeDialog: function () {
-                this._dialog.close();
+                if (this._oDialogEvaluadores) {
+                    this._oDialogEvaluadores.then(function(oDialog) {
+                        oDialog.close();
+                    });
+                }
             },
             afterCloseDialog: function () {
                 // Limpiar las selecciones guardadas al cerrar el dialog
@@ -409,9 +370,6 @@ sap.ui.define([
                     oModel.setProperty("/SeleccionesGuardadas", []);
                     oModel.setProperty("/FilterValue", "");
                 }
-                
-                this._dialog.destroy();
-                this._dialog = null;
             },
             onSaveEvaluador: function () {
                 var oEvaluadoresModel = this.getView().getModel("EvaluadoresModel");
@@ -536,10 +494,22 @@ sap.ui.define([
             },
 
             onSearchEvaluadores: function (oEvent) {
-                var sSearchValue = "";
+                var that = this;
                 var oSearchField = oEvent.getSource();
-                var oTable = this.byId("TableEvaluador");
                 var oModel = this.getView().getModel("Evaluadores");
+                
+                if (!oModel || !this._oDialogEvaluadores) {
+                    return;
+                }
+                
+                // Obtener la tabla del fragment
+                this._oDialogEvaluadores.then(function(oDialog) {
+                    var oTable = oDialog.byId("TableEvaluador");
+                    that._performSearch(oEvent, oSearchField, oTable, oModel);
+                });
+            },
+            _performSearch: function(oEvent, oSearchField, oTable, oModel) {
+                var sSearchValue = "";
                 
                 if (!oModel) {
                     return;
@@ -755,16 +725,19 @@ sap.ui.define([
                 oModel.setProperty("/Busy", false);
                 
                 // Si el Dialog está abierto, actualizar su modelo también
-                if (this._dialog) {
-                    this._dialog.setModel(oModel, "Evaluadores");
-                    // Actualizar también el binding de la tabla
-                    var oTable = this.byId("TableEvaluador");
-                    if (oTable) {
-                        var oBinding = oTable.getBinding("items");
-                        if (oBinding) {
-                            oBinding.refresh();
+                var that = this;
+                if (this._oDialogEvaluadores) {
+                    this._oDialogEvaluadores.then(function(oDialog) {
+                        oDialog.setModel(oModel, "Evaluadores");
+                        // Actualizar también el binding de la tabla
+                        var oTable = oDialog.byId("TableEvaluador");
+                        if (oTable) {
+                            var oBinding = oTable.getBinding("items");
+                            if (oBinding) {
+                                oBinding.refresh();
+                            }
                         }
-                    }
+                    });
                 }
             },
 
