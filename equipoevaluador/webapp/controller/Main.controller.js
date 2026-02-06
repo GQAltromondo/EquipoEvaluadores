@@ -102,6 +102,44 @@ sap.ui.define([
                     jQuery.proxy(this.onPressDeleteEvaluador, this, oEvaluador)
                 );
             },
+            onToggleFavorito: function (oEvent) {
+                var oButton = oEvent.getSource();
+                var oListItem = oButton.getParent();
+                var oContext = oListItem.getBindingContext("EvaluadoresModel");
+                
+                if (!oContext) {
+                    return;
+                }
+                
+                var sPath = oContext.getPath();
+                var oEvaluador = oContext.getObject();
+                
+                // Asegurar que el campo Favorito existe
+                if (oEvaluador.Favorito === undefined) {
+                    oEvaluador.Favorito = false;
+                }
+                
+                var oModel = this.getView().getModel("EvaluadoresModel");
+                var aEvaluadores = oModel.getProperty("/EvaluadoresModel") || [];
+                
+                // Contar favoritos actuales (excluyendo el actual si ya es favorito)
+                var iFavoritosCount = aEvaluadores.filter(function(eval) {
+                    return eval.Favorito === true;
+                }).length;
+                
+                // Si está intentando marcar como favorito y ya hay 3 favoritos
+                if (!oEvaluador.Favorito && iFavoritosCount >= 3) {
+                    MessageBoxHelper.showAlert("Favoritos", "Solo puede tener hasta 3 evaluadores favoritos. Desmarque uno antes de agregar otro.");
+                    return;
+                }
+                
+                // Toggle del estado de favorito
+                var bNuevoEstado = !oEvaluador.Favorito;
+                
+                // Actualizar el modelo
+                oModel.setProperty(sPath + "/Favorito", bNuevoEstado);
+                oModel.updateBindings(true);
+            },
             onPressDeleteEvaluador: function (oEvaluador) {
                 var oModel = this.getView().getModel("EvaluadoresModel");
                 var aEvaluadores = oModel.getProperty("/EvaluadoresModel") || [];
@@ -109,6 +147,12 @@ sap.ui.define([
                 
                 if (index >= 0 && index < aEvaluadores.length) {
                     aEvaluadores.splice(index, 1);
+                    // Asegurar que todos los evaluadores tengan el campo Favorito
+                    aEvaluadores.forEach(function(eval) {
+                        if (eval.Favorito === undefined) {
+                            eval.Favorito = false;
+                        }
+                    });
                     oModel.setProperty("/EvaluadoresModel", aEvaluadores);
                     oModel.updateBindings(true);
                 }
@@ -224,59 +268,50 @@ sap.ui.define([
                     return;
                 }
 
-                if (oTableId.getSelectedItems().length <= 3) {
-                    // Obtener el modelo de la tabla principal
-                    var oEvaluadoresModel = this.getView().getModel("EvaluadoresModel");
-                    var aEvaluadoresActuales = oEvaluadoresModel.getProperty("/EvaluadoresModel") || [];
-                    
-                    oTableId.getSelectedItems().forEach(obj => {
-                        let oObject = obj.getBindingContext("Evaluadores").getObject();
-                        let sLegajo = oObject.Legajo;
-                        let sNombreCompleto = (oObject.Nombre || "").trim() + " " + (oObject.Apellido || "").trim();
+                // Obtener el modelo de la tabla principal
+                var oEvaluadoresModel = this.getView().getModel("EvaluadoresModel");
+                var aEvaluadoresActuales = oEvaluadoresModel.getProperty("/EvaluadoresModel") || [];
+                
+                oTableId.getSelectedItems().forEach(obj => {
+                    let oObject = obj.getBindingContext("Evaluadores").getObject();
+                    let sLegajo = oObject.Legajo;
+                    let sNombreCompleto = (oObject.Nombre || "").trim() + " " + (oObject.Apellido || "").trim();
 
-                        // Verificar si el evaluador ya existe en la tabla principal
-                        var bExiste = aEvaluadoresActuales.some(function(eval) {
-                            return eval.Puser === sLegajo;
-                        });
-
-                        if (!bExiste) {
-                            let oDisplay = {
-                                Correo: oObject.Correo || "",
-                                Nombre: sNombreCompleto.trim(),
-                                Puser: sLegajo
-                            };
-                            aEvaluadores.push(oDisplay);
-                            aEvaluadoresActuales.push(oDisplay);
-                            sNombres.push(sNombreCompleto.trim());
-                            sPuser.push(sLegajo);
-                        }
+                    // Verificar si el evaluador ya existe en la tabla principal
+                    var bExiste = aEvaluadoresActuales.some(function(eval) {
+                        return eval.Puser === sLegajo;
                     });
 
-                    // Actualizar el modelo de la tabla principal
-                    oEvaluadoresModel.setProperty("/EvaluadoresModel", aEvaluadoresActuales);
-                    oEvaluadoresModel.updateBindings(true);
-
-                    // Actualizar el modelo de filtros para mostrar en los campos de entrada
-                    var oData = this.getView().getModel("FiltrosModel").getData();
-                    if (!oData) {
-                        oData = {};
+                    if (!bExiste) {
+                        let oDisplay = {
+                            Correo: oObject.Correo || "",
+                            Nombre: sNombreCompleto.trim(),
+                            Puser: sLegajo,
+                            Favorito: false
+                        };
+                        aEvaluadores.push(oDisplay);
+                        aEvaluadoresActuales.push(oDisplay);
+                        sNombres.push(sNombreCompleto.trim());
+                        sPuser.push(sLegajo);
                     }
-                    if (sNombres.length > 0) {
-                        oData.Nombre = sNombres.join(' / ');
-                        oData.Puser = sPuser.join(', ');
-                        oData.Evaluadores = aEvaluadores;
-                        this.getView().getModel("FiltrosModel").setData(oData);
-                        this.getView().getModel("FiltrosModel").updateBindings(true);
+                });
+
+                // Actualizar el modelo de la tabla principal
+                oEvaluadoresModel.setProperty("/EvaluadoresModel", aEvaluadoresActuales);
+                oEvaluadoresModel.updateBindings(true);
+
+                this._dialog.close();
+
+                if (aEvaluadores.length > 0) {
+                    MessageBoxHelper.showAlert("Equipo Evaluador", aEvaluadores.length + " evaluador(es) agregado(s) correctamente.");
+                    
+                    // Limpiar los campos del formulario después de agregar los evaluadores
+                    var oFiltrosModel = this.getView().getModel("FiltrosModel");
+                    if (oFiltrosModel) {
+                        oFiltrosModel.setProperty("/Puser", "");
+                        oFiltrosModel.setProperty("/Nombre", "");
+                        oFiltrosModel.updateBindings(true);
                     }
-
-                    this._dialog.close();
-
-                    if (aEvaluadores.length > 0) {
-                        MessageBoxHelper.showAlert("Equipo Evaluador", aEvaluadores.length + " evaluador(es) agregado(s) correctamente.");
-                    }
-
-                } else {
-                    MessageBoxHelper.showAlert("Equipo Evaluador", "Solo puede agregar hasta 3 evaluadores a la vez.");
                 }
             },
 
@@ -297,15 +332,26 @@ sap.ui.define([
                 this._dialog = null;
             },
             onSaveEvaluador: function () {
-                // Esta función ya no es necesaria porque los evaluadores se agregan automáticamente
-                // al seleccionarlos en el Dialog. Se mantiene por compatibilidad con la vista.
-                var oData = this.getView().getModel("FiltrosModel").getData();
-                if (!oData || !oData.Evaluadores || oData.Evaluadores.length === 0) {
-                    MessageBoxHelper.showAlert("Equipo Evaluador", "Debe seleccionar un evaluador desde el diálogo.");
+                var oEvaluadoresModel = this.getView().getModel("EvaluadoresModel");
+                var aEvaluadores = oEvaluadoresModel.getProperty("/EvaluadoresModel") || [];
+                
+                if (aEvaluadores.length === 0) {
+                    MessageBoxHelper.showAlert("Equipo Evaluador", "No hay evaluadores seleccionados. Por favor, seleccione al menos un evaluador desde el diálogo.");
                     return;
                 }
-                // Los evaluadores ya fueron agregados en selectedEvaluator, solo limpiar los filtros
-                this.getView().getModel("FiltrosModel").setData({});
+                
+                // Contar favoritos
+                var aFavoritos = aEvaluadores.filter(function(eval) {
+                    return eval.Favorito === true;
+                });
+                
+                var sMensaje = "Se guardaron " + aEvaluadores.length + " evaluador(es)";
+                if (aFavoritos.length > 0) {
+                    sMensaje += " (" + aFavoritos.length + " favorito(s))";
+                }
+                sMensaje += ".";
+                
+                MessageBoxHelper.showAlert("Equipo Evaluador", sMensaje);
             },
             validateEvaluador: function () {
                 var oModel = this.getView().getModel("EvaluadoresModel");

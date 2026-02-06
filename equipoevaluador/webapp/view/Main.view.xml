@@ -176,12 +176,6 @@
 														<Input value="{FiltrosModel>/Nombre}" enabled="false"/>
 													</f:fields>
 												</f:FormElement>
-												<f:FormElement label="">
-													<f:fields>
-														<Button icon="sap-icon://clear-filter" press="onClearFilters" text="Limpiar"/>
-														<Button icon="sap-icon://save" type="Emphasized" press="onSaveEvaluador" text="Guardar"/>
-													</f:fields>
-												</f:FormElement>
 											</f:formElements>
 										</f:FormContainer>
 									</f:formContainers>
@@ -191,9 +185,9 @@
 										<List id="list" mode="Delete" delete="handleDelete" enableBusyIndicator="true" headerText="Equipo Evaluador"
 											items="{path: 'EvaluadoresModel>/EvaluadoresModel'}" growing="true">
 											<CustomListItem>
-												<HBox class="sapUiSmallMargin">
+												<HBox class="sapUiSmallMargin" alignItems="Center">
 													<core:Icon size="50px" color="#0d63bf" src="sap-icon://customer" class="sapUiSmallMarginEnd"/>
-													<VBox class="sapUiSmallMarginBegin">
+													<VBox class="sapUiSmallMarginBegin" width="100%">
 														<HBox >
 															<Label text=" {i18n>Puser}: "/>
 															<Text class="sapUiTinyMarginBegin" text="{EvaluadoresModel>Puser}"/>
@@ -203,6 +197,12 @@
 															<Text class="sapUiTinyMarginBegin" text="{EvaluadoresModel>Nombre}"/>
 														</HBox>
 													</VBox>
+													<Button 
+														icon="sap-icon://favorite"
+														type="{= ${EvaluadoresModel>Favorito} ? 'Emphasized' : 'Transparent'}"
+														press="onToggleFavorito"
+														tooltip="{= ${EvaluadoresModel>Favorito} ? 'Quitar de favoritos' : 'Marcar como favorito'}"
+														class="sapUiSmallMarginBegin"/>
 												</HBox>
 											</CustomListItem>
 										</List>
@@ -212,5 +212,12 @@
 						</items>
 					</IconTabBar>
 				</content>
+				<footer>
+					<Bar>
+						<contentRight>
+							<Button icon="sap-icon://save" type="Emphasized" press="onSaveEvaluador" text="Guardar"/>
+						</contentRight>
+					</Bar>
+				</footer>
     </Page>
 </mvc:View>
