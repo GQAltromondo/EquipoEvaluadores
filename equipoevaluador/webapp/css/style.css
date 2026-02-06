@@ -1,0 +1,98 @@
+/* Enter your custom styles here *//* Enter your custom styles here *//* Header Style*/
+.titleBlue {
+    color: #225c8d;
+    font-weight: bold;
+    text-indent: 20px;
+}
+.TitleSection {
+    margin-left: 5px;
+    color: #515151;
+}
+.subTitleBlue {
+    color: #225c8d;
+    text-indent: 20px;
+}
+.sapUiSizeCompact .sapMComboBoxTextFieldInner:not(.sapMComboBoxTextFieldInnerReadonly) {
+    padding-right: 0;
+}
+.sapMComboBoxTextFieldArrowDisabled {
+	display: none;
+}
+
+.sapMITBContainerContent {
+    margin-bottom: 3rem !important;
+}
+.sapUshellShell .sapMPageBgStandard {
+    background-color: #fff;
+}
+.sapMListHdr {
+    background: #96C6FB;
+    border-bottom: 1px solid #eaeaea;
+}
+.formBold label {
+  font-weight: bold;
+}  
+.marginTopTitle {
+  margin-top: 15px
+}
+.topLabel {
+  padding-top: 0.5rem;
+}
+
+.TextEnd {
+  text-align: right !important;
+}
+.colorGray {
+  background: #f0f0f0;
+}
+.TitleBold, .TitleSection, .formBold label, .sapUiRespGrid .sapMText, .titleBlue, .versionStyle {
+    font-weight: 700;
+}
+
+/*MediaQuerys Header Mobile*/
+@media (max-width: 599px){
+    .ContentTitle {
+        width: 100% !important;
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+    .titleBlue {
+        text-indent: 0; 
+    }
+    .subTitleBlue {
+        text-indent: 0; 
+    }
+    .ContentHeader{
+        flex-wrap: wrap-reverse;
+    }
+   
+    .ContentHeader.sapUiMediumMargin {
+        margin: 1rem!important;
+    }
+     .ContentTitle .sapMTitle{
+        font-size: 1rem;
+        text-align: center;
+        width: 100%;
+    }
+    .ContentTitle .sapMFlexItem{
+        width: 100%;
+    }
+    .TextEnd{
+        text-align: left !important;
+    }
+}
+/*MediaQuerys Header Tablet*/
+
+@media (max-width: 1023px) and (min-width: 600px){
+    .ContentTitle{
+        flex-wrap: wrap;
+    }
+    .ContentImg img{
+        width: 100% !important;
+    }   
+      .TitleSection{
+    margin-left: 5px;
+    color: #515151;
+    font-weight: bold;
+}
+}

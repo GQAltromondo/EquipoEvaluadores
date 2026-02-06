@@ -1,0 +1,895 @@
+<?xml version="1.0" encoding="utf-8"?>
+<edmx:Edmx Version="1.0" xmlns:edmx="http://schemas.microsoft.com/ado/2007/06/edmx" xmlns:m="http://schemas.microsoft.com/ado/2007/08/dataservices/metadata" xmlns:sap="http://www.sap.com/Protocols/SAPData">
+    <edmx:DataServices m:DataServiceVersion="2.0">
+        <Schema Namespace="Z_SCP_HABILITACIONES_SRV" xml:lang="en" sap:schema-version="1" xmlns="http://schemas.microsoft.com/ado/2008/09/edm">
+            <EntityType Name="MotivoCambioEstado" sap:content-version="1">
+                <Key>
+                    <PropertyRef Name="Idhabilitacion"/>
+                    <PropertyRef Name="Clasehab"/>
+                    <PropertyRef Name="Empresa"/>
+                    <PropertyRef Name="Rol"/>
+                    <PropertyRef Name="Secuencial"/>
+                </Key>
+                <Property Name="Fecha" Type="Edm.DateTime" Precision="7" sap:unicode="false" sap:label="Created On" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false"/>
+                <Property Name="Idhabilitacion" Type="Edm.String" Nullable="false" MaxLength="10" sap:unicode="false" sap:creatable="false" sap:updatable="false" sap:sortable="false"/>
+                <Property Name="Clasehab" Type="Edm.String" Nullable="false" MaxLength="5" sap:unicode="false" sap:creatable="false" sap:updatable="false" sap:sortable="false"/>
+                <Property Name="Hora" Type="Edm.Time" Precision="0" sap:unicode="false" sap:label="Time" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false"/>
+                <Property Name="Empresa" Type="Edm.String" Nullable="false" MaxLength="4" sap:unicode="false" sap:label="Company Code" sap:creatable="false" sap:updatable="false" sap:sortable="false"/>
+                <Property Name="Rol" Type="Edm.String" Nullable="false" MaxLength="45" sap:unicode="false" sap:creatable="false" sap:updatable="false" sap:sortable="false"/>
+                <Property Name="Secuencial" Type="Edm.String" Nullable="false" MaxLength="3" sap:unicode="false" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false"/>
+                <Property Name="Estado" Type="Edm.String" Nullable="false" MaxLength="1" sap:unicode="false" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false"/>
+                <Property Name="Comentarios" Type="Edm.String" Nullable="false" MaxLength="255" sap:unicode="false" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false"/>
+            </EntityType>
+            <EntityType Name="CampoEntrenamiento" sap:content-version="1">
+                <Key>
+                    <PropertyRef Name="CampoEntrenamientoId"/>
+                </Key>
+                <Property Name="CampoEntrenamientoId" Type="Edm.String" Nullable="false" MaxLength="3" sap:unicode="false" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false"/>
+                <Property Name="CampoEntrenamientoText" Type="Edm.String" Nullable="false" MaxLength="60" sap:unicode="false" sap:label="Short text" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false"/>
+            </EntityType>
+            <EntityType Name="ITrabajosRealizadosDet" sap:content-version="1">
+                <Key>
+                    <PropertyRef Name="Empresa"/>
+                    <PropertyRef Name="Numero"/>
+                    <PropertyRef Name="Legajo"/>
+                </Key>
+                <Property Name="Empresa" Type="Edm.String" Nullable="false" MaxLength="2" sap:unicode="false" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false"/>
+                <Property Name="Numero" Type="Edm.String" Nullable="false" MaxLength="10" sap:unicode="false" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false"/>
+                <Property Name="Legajo" Type="Edm.String" Nullable="false" MaxLength="12" sap:unicode="false" sap:label="User Name" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false"/>
+                <Property Name="TipoHab" Type="Edm.String" Nullable="false" MaxLength="2" sap:unicode="false" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false"/>
+                <Property Name="Horas" Type="Edm.Byte" Nullable="false" sap:unicode="false" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false"/>
+                <Property Name="Altura" Type="Edm.Byte" Nullable="false" sap:unicode="false" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false"/>
+                <Property Name="Suelo" Type="Edm.Byte" Nullable="false" sap:unicode="false" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false"/>
+                <Property Name="Potencial" Type="Edm.Byte" Nullable="false" sap:unicode="false" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false"/>
+                <Property Name="Jefe" Type="Edm.String" Nullable="false" MaxLength="12" sap:unicode="false" sap:label="User Name" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false"/>
+                <Property Name="Observacion" Type="Edm.String" Nullable="false" sap:unicode="false" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false"/>
+            </EntityType>
+            <EntityType Name="TrabajosRealizDet" sap:content-version="1">
+                <Key>
+                    <PropertyRef Name="Empresa"/>
+                    <PropertyRef Name="Numero"/>
+                    <PropertyRef Name="Legajo"/>
+                </Key>
+                <Property Name="Empresa" Type="Edm.String" Nullable="false" MaxLength="2" sap:unicode="false" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false"/>
+                <Property Name="Numero" Type="Edm.String" Nullable="false" MaxLength="10" sap:unicode="false" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false"/>
+                <Property Name="Legajo" Type="Edm.String" Nullable="false" MaxLength="12" sap:unicode="false" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false"/>
+                <Property Name="TipoHab" Type="Edm.String" Nullable="false" MaxLength="2" sap:unicode="false" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false"/>
+                <Property Name="Horas" Type="Edm.Byte" Nullable="false" sap:unicode="false" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false"/>
+                <Property Name="Altura" Type="Edm.Byte" Nullable="false" sap:unicode="false" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false"/>
+                <Property Name="Suelo" Type="Edm.Byte" Nullable="false" sap:unicode="false" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false"/>
+                <Property Name="Potencial" Type="Edm.Byte" Nullable="false" sap:unicode="false" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false"/>
+                <Property Name="Jefe" Type="Edm.String" Nullable="false" MaxLength="12" sap:unicode="false" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false"/>
+                <Property Name="Observacion" Type="Edm.String" Nullable="false" sap:unicode="false" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false"/>
+            </EntityType>
+            <EntityType Name="CambioEstadoHab" sap:content-version="1">
+                <Key>
+                    <PropertyRef Name="Idhabilitacion"/>
+                    <PropertyRef Name="Clasehab"/>
+                </Key>
+                <Property Name="Idhabilitacion" Type="Edm.String" Nullable="false" MaxLength="10" sap:unicode="false" sap:creatable="false" sap:updatable="false" sap:sortable="false"/>
+                <Property Name="Clasehab" Type="Edm.String" Nullable="false" MaxLength="5" sap:unicode="false" sap:creatable="false" sap:updatable="false" sap:sortable="false"/>
+                <Property Name="Estado" Type="Edm.String" Nullable="false" MaxLength="1" sap:unicode="false" sap:creatable="false" sap:sortable="false"/>
+            </EntityType>
+            <EntityType Name="GuardarHabilitacion" sap:content-version="1">
+                <Key>
+                    <PropertyRef Name="IdHabilitacion"/>
+                </Key>
+                <Property Name="IdHabilitacion" Type="Edm.String" Nullable="false" MaxLength="10" sap:unicode="false" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false"/>
+                <NavigationProperty Name="HabTecnicasSet" Relationship="Z_SCP_HABILITACIONES_SRV.IdHab_HabTecnica" FromRole="FromRole_IdHab_HabTecnica" ToRole="ToRole_IdHab_HabTecnica"/>
+            </EntityType>
+            <EntityType Name="HabTecnicas2" sap:content-version="1">
+                <Key>
+                    <PropertyRef Name="Legajo"/>
+                </Key>
+                <Property Name="Clasehab" Type="Edm.String" Nullable="false" MaxLength="5" sap:unicode="false" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false"/>
+                <Property Name="Mto13" Type="Edm.Boolean" Nullable="false" sap:unicode="false" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false"/>
+                <Property Name="Empresaext" Type="Edm.String" Nullable="false" MaxLength="60" sap:unicode="false" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false"/>
+                <Property Name="Mto500" Type="Edm.Boolean" Nullable="false" sap:unicode="false" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false"/>
+                <Property Name="Nombre" Type="Edm.String" Nullable="false" MaxLength="30" sap:unicode="false" sap:label="Name 1" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false"/>
+                <Property Name="Puesto" Type="Edm.String" Nullable="false" MaxLength="2" sap:unicode="false" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false"/>
+                <Property Name="Apellido" Type="Edm.String" Nullable="false" MaxLength="30" sap:unicode="false" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false"/>
+                <Property Name="Base" Type="Edm.String" Nullable="false" MaxLength="40" sap:unicode="false" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false"/>
+                <Property Name="Mto220" Type="Edm.Boolean" Nullable="false" sap:unicode="false" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false"/>
+                <Property Name="Tipohab" Type="Edm.String" Nullable="false" MaxLength="3" sap:unicode="false" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false"/>
+                <Property Name="Documento" Type="Edm.String" Nullable="false" MaxLength="10" sap:unicode="false" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false"/>
+                <Property Name="Mto132" Type="Edm.Boolean" Nullable="false" sap:unicode="false" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false"/>
+                <Property Name="Empresa" Type="Edm.String" Nullable="false" MaxLength="10" sap:unicode="false" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false"/>
+                <Property Name="Mto66" Type="Edm.Boolean" Nullable="false" sap:unicode="false" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false"/>
+                <Property Name="Idhabilitacion" Type="Edm.String" Nullable="false" MaxLength="10" sap:unicode="false" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false"/>
+                <Property Name="Mto33" Type="Edm.Boolean" Nullable="false" sap:unicode="false" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false"/>
+                <Property Name="Tipodoc" Type="Edm.String" Nullable="false" MaxLength="1" sap:unicode="false" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false"/>
+                <Property Name="Interno" Type="Edm.Boolean" Nullable="false" sap:unicode="false" sap:label="TRUE" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false"/>
+                <Property Name="Legajo" Type="Edm.String" Nullable="false" MaxLength="8" sap:unicode="false" sap:label="Personnel No." sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false"/>
+                <Property Name="Vigencia" Type="Edm.DateTime" Precision="7" sap:unicode="false" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false"/>
+                <Property Name="Estado" Type="Edm.String" Nullable="false" MaxLength="1" sap:unicode="false" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false"/>
+                <Property Name="Area" Type="Edm.String" Nullable="false" MaxLength="4" sap:unicode="false" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false"/>
+                <Property Name="Lote" Type="Edm.String" Nullable="false" MaxLength="10" sap:unicode="false" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false"/>
+                <NavigationProperty Name="Hab_Intervenciones_nav" Relationship="Z_SCP_HABILITACIONES_SRV.Hab_Intervenciones" FromRole="FromRole_Hab_Intervenciones" ToRole="ToRole_Hab_Intervenciones"/>
+                <NavigationProperty Name="Hab_DesMantenimiento_nav" Relationship="Z_SCP_HABILITACIONES_SRV.Hab_DesMantenimiento" FromRole="FromRole_Hab_DesMantenimiento" ToRole="ToRole_Hab_DesMantenimiento"/>
+                <NavigationProperty Name="Hab_CETCT_nav" Relationship="Z_SCP_HABILITACIONES_SRV.Hab_CETCT" FromRole="FromRole_Hab_CETCT" ToRole="ToRole_Hab_CETCT"/>
+                <NavigationProperty Name="Hab_SeguridadHigiene_nav" Relationship="Z_SCP_HABILITACIONES_SRV.Hab_SeguridadHigiene" FromRole="FromRole_Hab_SeguridadHigiene" ToRole="ToRole_Hab_SeguridadHigiene"/>
+                <NavigationProperty Name="Hab_SeguridadPublica_nav" Relationship="Z_SCP_HABILITACIONES_SRV.Hab_SeguridadPublica" FromRole="FromRole_Hab_SeguridadPublica" ToRole="ToRole_Hab_SeguridadPublica"/>
+                <NavigationProperty Name="Hab_apmedico_nav" Relationship="Z_SCP_HABILITACIONES_SRV.Hab_ApMedico2" FromRole="FromRole_Hab_ApMedico2" ToRole="ToRole_Hab_ApMedico2"/>
+            </EntityType>
+            <EntityType Name="AptoMedico2" sap:content-version="1">
+                <Key>
+                    <PropertyRef Name="Legajo"/>
+                </Key>
+                <Property Name="Legajo" Type="Edm.String" Nullable="false" MaxLength="8" sap:unicode="false" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false"/>
+                <Property Name="Gradoap" Type="Edm.String" Nullable="false" MaxLength="3" sap:unicode="false" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false"/>
+                <Property Name="Vigencia" Type="Edm.DateTime" Precision="7" sap:unicode="false" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false"/>
+                <Property Name="Observaciones" Type="Edm.String" Nullable="false" sap:unicode="false" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false"/>
+                <NavigationProperty Name="HabTecnicas2_nav" Relationship="Z_SCP_HABILITACIONES_SRV.Hab_ApMedico2" FromRole="ToRole_Hab_ApMedico2" ToRole="FromRole_Hab_ApMedico2"/>
+            </EntityType>
+            <EntityType Name="Tareas" sap:content-version="1">
+                <Key>
+                    <PropertyRef Name="TareaCodigo"/>
+                </Key>
+                <Property Name="TareaCodigo" Type="Edm.String" Nullable="false" sap:unicode="false" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false"/>
+                <Property Name="TareaNombre" Type="Edm.String" Nullable="false" sap:unicode="false" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false"/>
+                <Property Name="Empresa" Type="Edm.String" Nullable="false" sap:unicode="false" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false"/>
+            </EntityType>
+            <EntityType Name="Estructuras" sap:content-version="1">
+                <Key>
+                    <PropertyRef Name="EstructuraCode"/>
+                </Key>
+                <Property Name="EstructuraCode" Type="Edm.String" Nullable="false" sap:unicode="false" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false"/>
+                <Property Name="EstructuraName" Type="Edm.String" Nullable="false" sap:unicode="false" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false"/>
+                <Property Name="Empresa" Type="Edm.String" Nullable="false" sap:unicode="false" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false"/>
+            </EntityType>
+            <EntityType Name="EquiposPorUsuario" sap:content-version="1">
+                <Key>
+                    <PropertyRef Name="Arbpl"/>
+                </Key>
+                <Property Name="Userid" Type="Edm.String" Nullable="false" MaxLength="30" sap:unicode="false" sap:label="System ID" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false"/>
+                <Property Name="Arbpl" Type="Edm.String" Nullable="false" MaxLength="8" sap:unicode="false" sap:label="Work Center" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false"/>
+            </EntityType>
+            <EntityType Name="Firmantes" sap:content-version="1">
+                <Key>
+                    <PropertyRef Name="Legajo"/>
+                </Key>
+                <Property Name="Legajo" Type="Edm.String" Nullable="false" sap:unicode="false" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false"/>
+                <Property Name="Nombre" Type="Edm.String" Nullable="false" sap:unicode="false" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false"/>
+                <Property Name="Apellido" Type="Edm.String" Nullable="false" sap:unicode="false" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false"/>
+            </EntityType>
+            <EntityType Name="FirmasUsuariosBin" m:HasStream="true" sap:content-version="1">
+                <Key>
+                    <PropertyRef Name="Usuario"/>
+                </Key>
+                <Property Name="Usuario" Type="Edm.String" Nullable="false" sap:unicode="false" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false"/>
+                <Property Name="Firma" Type="Edm.Binary" Nullable="false" sap:unicode="false" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false"/>
+                <Property Name="UserName" Type="Edm.String" Nullable="false" MaxLength="80" sap:unicode="false" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false"/>
+            </EntityType>
+            <EntityType Name="CapacitacionCot" sap:content-version="1">
+                <Key>
+                    <PropertyRef Name="Legajo"/>
+                </Key>
+                <Property Name="Legajo" Type="Edm.String" Nullable="false" MaxLength="8" sap:unicode="false" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false"/>
+                <Property Name="Calificacion" Type="Edm.Byte" Nullable="false" sap:unicode="false" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false"/>
+                <Property Name="Vigencia" Type="Edm.DateTime" Precision="7" sap:unicode="false" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false"/>
+                <Property Name="Habilitado" Type="Edm.String" Nullable="false" MaxLength="2" sap:unicode="false" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false"/>
+            </EntityType>
+            <EntityType Name="Evaluadores" sap:content-version="1">
+                <Key>
+                    <PropertyRef Name="Puser"/>
+                </Key>
+                <Property Name="Uname" Type="Edm.String" Nullable="false" MaxLength="12" sap:unicode="false" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false"/>
+                <Property Name="Puser" Type="Edm.String" Nullable="false" MaxLength="10" sap:unicode="false" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false"/>
+                <Property Name="Username" Type="Edm.String" Nullable="false" MaxLength="80" sap:unicode="false" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false"/>
+                <Property Name="Correo" Type="Edm.String" Nullable="false" MaxLength="100" sap:unicode="false" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false"/>
+            </EntityType>
+            <EntityType Name="Destinatarios" sap:content-version="1">
+                <Key>
+                    <PropertyRef Name="WfId"/>
+                    <PropertyRef Name="Rol"/>
+                    <PropertyRef Name="Operacion"/>
+                </Key>
+                <Property Name="WfId" Type="Edm.String" Nullable="false" MaxLength="12" sap:unicode="false" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false"/>
+                <Property Name="Rol" Type="Edm.String" Nullable="false" MaxLength="30" sap:unicode="false" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false"/>
+                <Property Name="Operacion" Type="Edm.String" Nullable="false" MaxLength="2" sap:unicode="false" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false"/>
+                <Property Name="DestList" Type="Edm.String" Nullable="false" sap:unicode="false" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false"/>
+                <Property Name="Action" Type="Edm.String" Nullable="false" MaxLength="1" sap:unicode="false" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false"/>
+            </EntityType>
+            <EntityType Name="WfDefinitions" sap:content-version="1">
+                <Key>
+                    <PropertyRef Name="WfId"/>
+                </Key>
+                <Property Name="WfId" Type="Edm.String" Nullable="false" MaxLength="12" sap:unicode="false" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false"/>
+                <Property Name="Description" Type="Edm.String" Nullable="false" MaxLength="80" sap:unicode="false" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false"/>
+            </EntityType>
+            <EntityType Name="RolesWf" sap:content-version="1">
+                <Key>
+                    <PropertyRef Name="WfId"/>
+                </Key>
+                <Property Name="WfId" Type="Edm.String" Nullable="false" MaxLength="12" sap:unicode="false" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false"/>
+                <Property Name="Rol" Type="Edm.String" Nullable="false" MaxLength="30" sap:unicode="false" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false"/>
+            </EntityType>
+            <EntityType Name="CancelarHabilitacion" sap:content-version="1">
+                <Key>
+                    <PropertyRef Name="IdHabilitacion"/>
+                </Key>
+                <Property Name="IdHabilitacion" Type="Edm.String" Nullable="false" MaxLength="10" sap:unicode="false" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false"/>
+            </EntityType>
+            <EntityType Name="PersonalHabilitado" sap:content-version="1">
+                <Key>
+                    <PropertyRef Name="Idhabilitacion"/>
+                    <PropertyRef Name="Clasehab"/>
+                    <PropertyRef Name="Tipohab"/>
+                    <PropertyRef Name="Legajo"/>
+                </Key>
+                <Property Name="Idhabilitacion" Type="Edm.String" Nullable="false" MaxLength="10" sap:unicode="false" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false"/>
+                <Property Name="Clasehab" Type="Edm.String" Nullable="false" MaxLength="5" sap:unicode="false" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false"/>
+                <Property Name="Tipohab" Type="Edm.String" Nullable="false" MaxLength="3" sap:unicode="false" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false"/>
+                <Property Name="Legajo" Type="Edm.String" Nullable="false" MaxLength="8" sap:unicode="false" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false"/>
+                <Property Name="Vigencia" Type="Edm.DateTime" Precision="0" sap:unicode="false" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false"/>
+                <Property Name="Estado" Type="Edm.String" Nullable="false" MaxLength="1" sap:unicode="false" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false"/>
+                <Property Name="Area" Type="Edm.String" Nullable="false" MaxLength="5" sap:unicode="false" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false"/>
+                <NavigationProperty Name="Nav_PersonalHab_Area" Relationship="Z_SCP_HABILITACIONES_SRV.Association_PersonalHab_Area" FromRole="FromRole_Association_PersonalHab_Area" ToRole="ToRole_Association_PersonalHab_Area"/>
+                <NavigationProperty Name="Nav_PersonalHab_DesMant" Relationship="Z_SCP_HABILITACIONES_SRV.Association_PersonalHab_DesMant" FromRole="FromRole_Association_PersonalHab_DesMant" ToRole="ToRole_Association_PersonalHab_DesMant"/>
+                <NavigationProperty Name="Nav_PersonalHab_AptoMedico" Relationship="Z_SCP_HABILITACIONES_SRV.Association_PersonalHab_AptoMedico" FromRole="FromRole_Association_PersonalHab_AptoMedico" ToRole="ToRole_Association_PersonalHab_AptoMedico"/>
+                <NavigationProperty Name="Nav_PersonalHab_SegPublica" Relationship="Z_SCP_HABILITACIONES_SRV.Association_PersonalHab_SegPublica" FromRole="FromRole_Association_PersonalHab_SegPublica" ToRole="ToRole_Association_PersonalHab_SegPublica"/>
+                <NavigationProperty Name="Nav_PersonalHab_SegHig" Relationship="Z_SCP_HABILITACIONES_SRV.Association_PersonalHab_SegHig" FromRole="FromRole_Association_PersonalHab_SegHig" ToRole="ToRole_Association_PersonalHab_SegHig"/>
+                <NavigationProperty Name="Nav_PersonalHab_CETCT" Relationship="Z_SCP_HABILITACIONES_SRV.Association_PersonalHab_CETCT" FromRole="FromRole_Association_PersonalHab_CETCT" ToRole="ToRole_Association_PersonalHab_CETCT"/>
+            </EntityType>
+            <EntityType Name="DesMantenimiento" sap:content-version="1">
+                <Key>
+                    <PropertyRef Name="Legajo"/>
+                    <PropertyRef Name="Idhabilitacion"/>
+                    <PropertyRef Name="Areaeval"/>
+                </Key>
+                <Property Name="Legajo" Type="Edm.String" Nullable="false" MaxLength="12" sap:unicode="false" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false"/>
+                <Property Name="Idhabilitacion" Type="Edm.String" Nullable="false" MaxLength="10" sap:unicode="false" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false"/>
+                <Property Name="Areaeval" Type="Edm.String" Nullable="false" MaxLength="3" sap:unicode="false" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false"/>
+                <Property Name="Resultado" Type="Edm.String" Nullable="false" MaxLength="2" sap:unicode="false" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false"/>
+                <NavigationProperty Name="Nav_DesMant_Area" Relationship="Z_SCP_HABILITACIONES_SRV.Association_DesMant_Area" FromRole="FromRole_Association_DesMant_Area" ToRole="ToRole_Association_DesMant_Area"/>
+            </EntityType>
+            <EntityType Name="DetAptoMedico" sap:content-version="1">
+                <Key>
+                    <PropertyRef Name="Legajo"/>
+                </Key>
+                <Property Name="Legajo" Type="Edm.String" Nullable="false" MaxLength="12" sap:unicode="false" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false"/>
+                <Property Name="Gradoap" Type="Edm.String" Nullable="false" MaxLength="3" sap:unicode="false" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false"/>
+                <Property Name="Vigencia" Type="Edm.DateTime" Nullable="false" Precision="7" sap:unicode="false" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false"/>
+                <Property Name="Observaciones" Type="Edm.String" Nullable="false" sap:unicode="false" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false"/>
+                <Property Name="Apto" Type="Edm.String" Nullable="false" MaxLength="2" sap:unicode="false" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false"/>
+            </EntityType>
+            <EntityType Name="SeguridadPublica" sap:content-version="1">
+                <Key>
+                    <PropertyRef Name="Legajo"/>
+                </Key>
+                <Property Name="Legajo" Type="Edm.String" Nullable="false" MaxLength="12" sap:unicode="false" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false"/>
+                <Property Name="Calificacion" Type="Edm.Byte" Nullable="false" sap:unicode="false" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false"/>
+                <Property Name="Vigencia" Type="Edm.DateTime" Precision="7" sap:unicode="false" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false"/>
+                <Property Name="Observaciones" Type="Edm.String" Nullable="false" sap:unicode="false" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false"/>
+                <Property Name="Apto" Type="Edm.String" Nullable="false" MaxLength="2" sap:unicode="false" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false"/>
+                <NavigationProperty Name="HabTecnicas2_nav" Relationship="Z_SCP_HABILITACIONES_SRV.Hab_SeguridadPublica" FromRole="ToRole_Hab_SeguridadPublica" ToRole="FromRole_Hab_SeguridadPublica"/>
+            </EntityType>
+            <EntityType Name="SeguridadHigiene" sap:content-version="1">
+                <Key>
+                    <PropertyRef Name="Legajo"/>
+                    <PropertyRef Name="Idhabilitacion"/>
+                </Key>
+                <Property Name="Legajo" Type="Edm.String" Nullable="false" MaxLength="8" sap:unicode="false" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false"/>
+                <Property Name="Idhabilitacion" Type="Edm.String" Nullable="false" MaxLength="10" sap:unicode="false" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false"/>
+                <Property Name="Calificacion" Type="Edm.Byte" Nullable="false" sap:unicode="false" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false"/>
+                <Property Name="Vigencia" Type="Edm.DateTime" Precision="7" sap:unicode="false" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false"/>
+                <Property Name="Aprobado" Type="Edm.Boolean" Nullable="false" sap:unicode="false" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false"/>
+                <Property Name="Contador" Type="Edm.SByte" Nullable="false" sap:unicode="false" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false"/>
+                <Property Name="Apto" Type="Edm.String" Nullable="false" MaxLength="1" sap:unicode="false" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false"/>
+            </EntityType>
+            <EntityType Name="CapEntrenamientoTCT" sap:content-version="1">
+                <Key>
+                    <PropertyRef Name="Legajo"/>
+                </Key>
+                <Property Name="Legajo" Type="Edm.String" Nullable="false" MaxLength="12" sap:unicode="false" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false"/>
+                <Property Name="Tension" Type="Edm.String" Nullable="false" MaxLength="3" sap:unicode="false" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false"/>
+                <Property Name="FechaCapacitacion" Type="Edm.DateTime" Precision="7" sap:unicode="false" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false"/>
+                <Property Name="Tipohab" Type="Edm.String" Nullable="false" MaxLength="3" sap:unicode="false" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false"/>
+                <Property Name="Vencimiento" Type="Edm.DateTime" Precision="7" sap:unicode="false" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false"/>
+                <Property Name="Clase" Type="Edm.String" Nullable="false" MaxLength="3" sap:unicode="false" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false"/>
+            </EntityType>
+            <EntityType Name="AreasEvaluacion" sap:content-version="1">
+                <Key>
+                    <PropertyRef Name="Areaeval"/>
+                </Key>
+                <Property Name="Areaeval" Type="Edm.String" Nullable="false" MaxLength="3" sap:unicode="false" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false"/>
+                <Property Name="Descripcion" Type="Edm.String" Nullable="false" MaxLength="50" sap:unicode="false" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false"/>
+            </EntityType>
+            <EntityType Name="AreasMantenimiento" sap:content-version="1">
+                <Key>
+                    <PropertyRef Name="Area"/>
+                </Key>
+                <Property Name="Area" Type="Edm.String" Nullable="false" MaxLength="5" sap:unicode="false" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false"/>
+                <Property Name="Descripcion" Type="Edm.String" Nullable="false" MaxLength="50" sap:unicode="false" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false"/>
+            </EntityType>
+            <EntityType Name="TrabajosRealizados" sap:content-version="1">
+                <Key>
+                    <PropertyRef Name="Empresa"/>
+                    <PropertyRef Name="Numero"/>
+                </Key>
+                <Property Name="Empresa" Type="Edm.String" Nullable="false" sap:unicode="false" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false"/>
+                <Property Name="Numero" Type="Edm.String" Nullable="false" sap:unicode="false" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false"/>
+                <Property Name="Tarea" Type="Edm.String" sap:unicode="false" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false"/>
+                <Property Name="Instructor" Type="Edm.String" Nullable="false" sap:unicode="false" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false"/>
+                <Property Name="FechaInforme" Type="Edm.DateTime" Precision="0" sap:unicode="false" sap:label="Posting Date" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false"/>
+                <Property Name="FechaTarea" Type="Edm.DateTime" Precision="0" sap:unicode="false" sap:label="Date" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false"/>
+                <Property Name="LicenciaTrab" Type="Edm.String" sap:unicode="false" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false"/>
+                <Property Name="FechaCierre" Type="Edm.DateTime" Precision="0" sap:unicode="false" sap:label="Date" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false"/>
+                <Property Name="Comentarios" Type="Edm.String" Nullable="false" sap:unicode="false" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false"/>
+                <Property Name="FechaDesde" Type="Edm.DateTime" Precision="0" sap:unicode="false" sap:label="Posting Date" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false"/>
+                <Property Name="CampoEntrenamiento" Type="Edm.String" MaxLength="3" sap:unicode="false" sap:creatable="false" sap:updatable="false" sap:sortable="false"/>
+                <Property Name="FechaHasta" Type="Edm.DateTime" Precision="0" sap:unicode="false" sap:label="Posting Date" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false"/>
+                <Property Name="LicenciaOtro" Type="Edm.String" sap:unicode="false" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false"/>
+                <Property Name="EmpresaDescripcion" Type="Edm.String" sap:unicode="false" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false"/>
+                <NavigationProperty Name="toTareas" Relationship="Z_SCP_HABILITACIONES_SRV.TrabajosRealizadosToTareas" FromRole="FromRole_TrabajosRealizadosToTareas" ToRole="ToRole_TrabajosRealizadosToTareas"/>
+            </EntityType>
+            <EntityType Name="Empresas" sap:content-version="1">
+                <Key>
+                    <PropertyRef Name="EmpresaCode"/>
+                </Key>
+                <Property Name="EmpresaCode" Type="Edm.String" Nullable="false" MaxLength="4" sap:unicode="false" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false"/>
+                <Property Name="EmpresaName" Type="Edm.String" Nullable="false" MaxLength="100" sap:unicode="false" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false"/>
+            </EntityType>
+            <EntityType Name="PersonalInterno" sap:content-version="1">
+                <Key>
+                    <PropertyRef Name="Nombre"/>
+                    <PropertyRef Name="Apellido"/>
+                    <PropertyRef Name="Legajo"/>
+                </Key>
+                <Property Name="Nombre" Type="Edm.String" Nullable="false" MaxLength="25" sap:unicode="false" sap:creatable="false" sap:updatable="false" sap:sortable="false"/>
+                <Property Name="Apellido" Type="Edm.String" Nullable="false" MaxLength="25" sap:unicode="false" sap:creatable="false" sap:updatable="false" sap:sortable="false"/>
+                <Property Name="Legajo" Type="Edm.String" Nullable="false" MaxLength="12" sap:unicode="false" sap:creatable="false" sap:updatable="false" sap:sortable="false"/>
+                <Property Name="Interno" Type="Edm.String" Nullable="false" MaxLength="2" sap:unicode="false" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false"/>
+                <Property Name="Correo" Type="Edm.String" Nullable="false" sap:unicode="false" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false"/>
+                <Property Name="Dni" Type="Edm.String" Nullable="false" MaxLength="20" sap:unicode="false" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false"/>
+                <Property Name="FechaNac" Type="Edm.DateTime" Precision="0" sap:unicode="false" sap:label="Date" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false"/>
+            </EntityType>
+            <EntityType Name="Funciones" sap:content-version="1">
+                <Key>
+                    <PropertyRef Name="Codigo"/>
+                </Key>
+                <Property Name="Codigo" Type="Edm.String" Nullable="false" MaxLength="2" sap:unicode="false" sap:creatable="false" sap:updatable="false" sap:sortable="false"/>
+                <Property Name="Funcion" Type="Edm.String" Nullable="false" MaxLength="25" sap:unicode="false" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false"/>
+            </EntityType>
+            <EntityType Name="Regiones" sap:content-version="1">
+                <Key>
+                    <PropertyRef Name="Codigo"/>
+                    <PropertyRef Name="Empresa"/>
+                </Key>
+                <Property Name="Codigo" Type="Edm.String" Nullable="false" MaxLength="4" sap:unicode="false" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false"/>
+                <Property Name="Empresa" Type="Edm.String" Nullable="false" MaxLength="4" sap:unicode="false" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false"/>
+                <Property Name="Region" Type="Edm.String" Nullable="false" MaxLength="30" sap:unicode="false" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false"/>
+            </EntityType>
+            <EntityType Name="UsuariosSap" sap:content-version="1">
+                <Key>
+                    <PropertyRef Name="Usuario"/>
+                </Key>
+                <Property Name="Search" Type="Edm.String" Nullable="false" sap:unicode="false" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false"/>
+                <Property Name="Usuario" Type="Edm.String" Nullable="false" sap:unicode="false" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false"/>
+                <Property Name="Nombre" Type="Edm.String" Nullable="false" sap:unicode="false" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false"/>
+                <Property Name="Apellido" Type="Edm.String" Nullable="false" sap:unicode="false" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false"/>
+            </EntityType>
+            <EntityType Name="FirmasUsuarios" sap:content-version="1">
+                <Key>
+                    <PropertyRef Name="Usuario"/>
+                </Key>
+                <Property Name="Usuario" Type="Edm.String" Nullable="false" sap:unicode="false" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false"/>
+                <Property Name="Firma" Type="Edm.Binary" Nullable="false" sap:unicode="false" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false"/>
+                <Property Name="UserName" Type="Edm.String" Nullable="false" MaxLength="80" sap:unicode="false" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false"/>
+                <Property Name="FirmaType" Type="Edm.String" Nullable="false" sap:unicode="false" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false"/>
+            </EntityType>
+            <EntityType Name="HabTecnicas" sap:content-version="1">
+                <Key>
+                    <PropertyRef Name="Clasehab"/>
+                    <PropertyRef Name="Tipohab"/>
+                    <PropertyRef Name="Idhabilitacion"/>
+                    <PropertyRef Name="Legajo"/>
+                </Key>
+                <Property Name="Vigencia" Type="Edm.DateTime" Precision="0" sap:unicode="false" sap:label="Date" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false"/>
+                <Property Name="Clasehab" Type="Edm.String" Nullable="false" sap:unicode="false" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false"/>
+                <Property Name="Tipohab" Type="Edm.String" Nullable="false" sap:unicode="false" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false"/>
+                <Property Name="Idhabilitacion" Type="Edm.String" Nullable="false" sap:unicode="false" sap:creatable="false" sap:updatable="false" sap:sortable="false"/>
+                <Property Name="Legajo" Type="Edm.String" Nullable="false" sap:unicode="false" sap:creatable="false" sap:updatable="false" sap:sortable="false"/>
+                <Property Name="Nombre" Type="Edm.String" Nullable="false" sap:unicode="false" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false"/>
+                <Property Name="Apellido" Type="Edm.String" Nullable="false" sap:unicode="false" sap:creatable="false" sap:updatable="false" sap:sortable="false"/>
+                <Property Name="Estado" Type="Edm.String" Nullable="false" sap:unicode="false" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false"/>
+                <Property Name="VigenciaTo" Type="Edm.DateTime" Precision="0" sap:unicode="false" sap:label="Date" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false"/>
+                <Property Name="Flag" Type="Edm.String" Nullable="false" MaxLength="1" sap:unicode="false" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false"/>
+                <Property Name="Lote" Type="Edm.String" Nullable="false" MaxLength="10" sap:unicode="false" sap:creatable="false" sap:updatable="false" sap:sortable="false"/>
+                <Property Name="Empresa" Type="Edm.String" Nullable="false" MaxLength="10" sap:unicode="false" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false"/>
+                <Property Name="Puesto" Type="Edm.String" Nullable="false" MaxLength="2" sap:unicode="false" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false"/>
+                <Property Name="Area" Type="Edm.String" Nullable="false" MaxLength="4" sap:unicode="false" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false"/>
+                <Property Name="Documento" Type="Edm.String" Nullable="false" MaxLength="10" sap:unicode="false" sap:creatable="false" sap:updatable="false" sap:sortable="false"/>
+                <Property Name="FechaCreacion" Type="Edm.DateTime" Precision="0" sap:unicode="false" sap:label="Date" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false"/>
+                <Property Name="VtoApto" Type="Edm.DateTime" Precision="0" sap:unicode="false" sap:label="Date" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false"/>
+                <Property Name="Base" Type="Edm.String" MaxLength="30" sap:unicode="false" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false"/>
+                <NavigationProperty Name="GuardarHabilitacion" Relationship="Z_SCP_HABILITACIONES_SRV.IdHab_HabTecnica" FromRole="ToRole_IdHab_HabTecnica" ToRole="FromRole_IdHab_HabTecnica"/>
+            </EntityType>
+            <EntityType Name="Intervenciones" sap:content-version="1">
+                <Key>
+                    <PropertyRef Name="Clasehab"/>
+                    <PropertyRef Name="Idhabilitacion"/>
+                    <PropertyRef Name="Legajo"/>
+                    <PropertyRef Name="Rol"/>
+                    <PropertyRef Name="Usuario"/>
+                </Key>
+                <Property Name="Firma" Type="Edm.Binary" Nullable="false" sap:unicode="false" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false"/>
+                <Property Name="Datosadicionales" Type="Edm.String" Nullable="false" sap:unicode="false" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false"/>
+                <Property Name="Clasehab" Type="Edm.String" Nullable="false" MaxLength="5" sap:unicode="false" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false"/>
+                <Property Name="Idhabilitacion" Type="Edm.String" Nullable="false" MaxLength="10" sap:unicode="false" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false"/>
+                <Property Name="Legajo" Type="Edm.String" Nullable="false" MaxLength="8" sap:unicode="false" sap:label="Personnel No." sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false"/>
+                <Property Name="Fechacreacion" Type="Edm.DateTime" Precision="0" sap:unicode="false" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false"/>
+                <Property Name="Rol" Type="Edm.String" Nullable="false" MaxLength="45" sap:unicode="false" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false"/>
+                <Property Name="Usuario" Type="Edm.String" Nullable="false" MaxLength="12" sap:unicode="false" sap:label="User Name" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false"/>
+                <Property Name="Fechaint" Type="Edm.DateTime" Precision="7" sap:unicode="false" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false"/>
+                <Property Name="Horaint" Type="Edm.Time" Nullable="false" Precision="0" sap:unicode="false" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false"/>
+                <Property Name="Accion" Type="Edm.String" Nullable="false" MaxLength="2" sap:unicode="false" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false"/>
+                <Property Name="Idadjuntos" Type="Edm.String" Nullable="false" MaxLength="10" sap:unicode="false" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false"/>
+                <Property Name="Nombre" Type="Edm.String" Nullable="false" MaxLength="80" sap:unicode="false" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false"/>
+                <NavigationProperty Name="AdjuntosSet" Relationship="Z_SCP_HABILITACIONES_SRV.ToAdjuntos" FromRole="FromRole_ToAdjuntos" ToRole="ToRole_ToAdjuntos"/>
+            </EntityType>
+            <EntityType Name="TipoHabilitacion" sap:content-version="1">
+                <Key>
+                    <PropertyRef Name="TipoHabilitacionCode"/>
+                </Key>
+                <Property Name="TipoHabilitacionCode" Type="Edm.String" Nullable="false" sap:unicode="false" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false"/>
+                <Property Name="TipoHabilitacionName" Type="Edm.String" Nullable="false" sap:unicode="false" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false"/>
+            </EntityType>
+            <EntityType Name="ClaseHabilitacion" sap:content-version="1">
+                <Key>
+                    <PropertyRef Name="ClaseHabilitacionCode"/>
+                </Key>
+                <Property Name="ClaseHabilitacionCode" Type="Edm.String" Nullable="false" sap:unicode="false" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false"/>
+                <Property Name="ClaseHabilitacionName" Type="Edm.String" Nullable="false" sap:unicode="false" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false"/>
+            </EntityType>
+            <EntityType Name="Adjuntos" sap:content-version="1">
+                <Key>
+                    <PropertyRef Name="Idadjuntos"/>
+                    <PropertyRef Name="Nombre"/>
+                </Key>
+                <Property Name="Complementario" Type="Edm.Boolean" Nullable="false" sap:unicode="false" sap:label="Indicator" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false"/>
+                <Property Name="Idadjuntos" Type="Edm.String" Nullable="false" MaxLength="10" sap:unicode="false" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false"/>
+                <Property Name="Nombre" Type="Edm.String" Nullable="false" MaxLength="100" sap:unicode="false" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false"/>
+                <Property Name="Rol" Type="Edm.String" Nullable="false" MaxLength="30" sap:unicode="false" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false"/>
+                <Property Name="Archivo" Type="Edm.Binary" Nullable="false" sap:unicode="false" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false"/>
+                <Property Name="Doctype" Type="Edm.String" Nullable="false" sap:unicode="false" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false"/>
+            </EntityType>
+            <EntityType Name="HabRangos" sap:content-version="1">
+                <Key>
+                    <PropertyRef Name="Idhabilitacion"/>
+                    <PropertyRef Name="Clasehab"/>
+                    <PropertyRef Name="Tipohab"/>
+                    <PropertyRef Name="Legajo"/>
+                </Key>
+                <Property Name="Idhabilitacion" Type="Edm.String" Nullable="false" sap:unicode="false" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false"/>
+                <Property Name="Clasehab" Type="Edm.String" Nullable="false" sap:unicode="false" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false"/>
+                <Property Name="Tipohab" Type="Edm.String" Nullable="false" sap:unicode="false" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false"/>
+                <Property Name="Legajo" Type="Edm.String" Nullable="false" sap:unicode="false" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false"/>
+                <NavigationProperty Name="Lotes" Relationship="Z_SCP_HABILITACIONES_SRV.CreateLotes" FromRole="ToRole_CreateLotes" ToRole="FromRole_CreateLotes"/>
+            </EntityType>
+            <EntityType Name="Lotes" sap:content-version="1">
+                <Key>
+                    <PropertyRef Name="NroLote"/>
+                </Key>
+                <Property Name="NroLote" Type="Edm.String" Nullable="false" MaxLength="10" sap:unicode="false" sap:updatable="false" sap:sortable="false"/>
+                <NavigationProperty Name="HabRangosSet" Relationship="Z_SCP_HABILITACIONES_SRV.CreateLotes" FromRole="FromRole_CreateLotes" ToRole="ToRole_CreateLotes"/>
+            </EntityType>
+            <EntityType Name="TipoHab" sap:content-version="1">
+                <Key>
+                    <PropertyRef Name="Tipohab"/>
+                    <PropertyRef Name="Empresa"/>
+                </Key>
+                <Property Name="Tipohab" Type="Edm.String" Nullable="false" MaxLength="3" sap:unicode="false" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false"/>
+                <Property Name="Empresa" Type="Edm.String" Nullable="false" MaxLength="4" sap:unicode="false" sap:label="Company Code" sap:creatable="false" sap:updatable="false" sap:sortable="false"/>
+                <Property Name="Descripcion" Type="Edm.String" Nullable="false" MaxLength="50" sap:unicode="false" sap:label="Description" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false"/>
+            </EntityType>
+            <EntityType Name="PersonalInternoMto" sap:content-version="1">
+                <Key>
+                    <PropertyRef Name="Nombre"/>
+                    <PropertyRef Name="Apellido"/>
+                    <PropertyRef Name="Legajo"/>
+                </Key>
+                <Property Name="Nombre" Type="Edm.String" Nullable="false" MaxLength="25" sap:unicode="false" sap:creatable="false" sap:updatable="false" sap:sortable="false"/>
+                <Property Name="Apellido" Type="Edm.String" Nullable="false" MaxLength="25" sap:unicode="false" sap:creatable="false" sap:updatable="false" sap:sortable="false"/>
+                <Property Name="Legajo" Type="Edm.String" Nullable="false" MaxLength="12" sap:unicode="false" sap:creatable="false" sap:updatable="false" sap:sortable="false"/>
+                <Property Name="Interno" Type="Edm.String" Nullable="false" MaxLength="2" sap:unicode="false" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false"/>
+                <Property Name="Correo" Type="Edm.String" Nullable="false" sap:unicode="false" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false"/>
+                <Property Name="Dni" Type="Edm.String" Nullable="false" MaxLength="20" sap:unicode="false" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false"/>
+                <Property Name="FechaNac" Type="Edm.DateTime" Precision="0" sap:unicode="false" sap:label="Date" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false"/>
+            </EntityType>
+            <EntityType Name="EdicionGestCalidad" sap:content-version="1">
+                <Key>
+                    <PropertyRef Name="Idhabilitacion"/>
+                </Key>
+                <Property Name="Idhabilitacion" Type="Edm.String" Nullable="false" MaxLength="10" sap:unicode="false" sap:creatable="false" sap:updatable="false" sap:sortable="false"/>
+                <Property Name="Rol" Type="Edm.String" Nullable="false" MaxLength="30" sap:unicode="false" sap:creatable="false" sap:updatable="false" sap:sortable="false"/>
+                <Property Name="TextoMail" Type="Edm.String" Nullable="false" sap:unicode="false" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false"/>
+            </EntityType>
+            <EntityType Name="TareasTCT" sap:content-version="1">
+                <Key>
+                    <PropertyRef Name="Codigo"/>
+                </Key>
+                <Property Name="Codigo" Type="Edm.String" Nullable="false" MaxLength="3" sap:unicode="false" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false"/>
+                <Property Name="Descripcion" Type="Edm.String" Nullable="false" MaxLength="70" sap:unicode="false" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false"/>
+                <Property Name="Tipo" Type="Edm.String" Nullable="false" MaxLength="3" sap:unicode="false" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false"/>
+                <Property Name="Orden" Type="Edm.String" Nullable="false" MaxLength="3" sap:unicode="false" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false"/>
+            </EntityType>
+            <EntityType Name="GestionTareasTCT" sap:content-version="1">
+                <Key>
+                    <PropertyRef Name="Legajo"/>
+                    <PropertyRef Name="Tension"/>
+                    <PropertyRef Name="Puesto"/>
+                    <PropertyRef Name="TipoHabilitacion"/>
+                    <PropertyRef Name="Tarea"/>
+                </Key>
+                <Property Name="Legajo" Type="Edm.String" Nullable="false" MaxLength="8" sap:unicode="false" sap:label="Personnel No." sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false"/>
+                <Property Name="Tension" Type="Edm.String" Nullable="false" MaxLength="3" sap:unicode="false" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false"/>
+                <Property Name="Puesto" Type="Edm.String" Nullable="false" MaxLength="2" sap:unicode="false" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false"/>
+                <Property Name="TipoHabilitacion" Type="Edm.String" Nullable="false" MaxLength="50" sap:unicode="false" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false"/>
+                <Property Name="Tarea" Type="Edm.String" Nullable="false" MaxLength="3" sap:unicode="false" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false"/>
+            </EntityType>
+            <EntityType Name="SeleccionGerentes" sap:content-version="1">
+                <Key>
+                    <PropertyRef Name="Clasehab"/>
+                    <PropertyRef Name="Region"/>
+                    <PropertyRef Name="Empresa"/>
+                    <PropertyRef Name="Posicion"/>
+                </Key>
+                <Property Name="Puesto" Type="Edm.String" Nullable="false" MaxLength="2" sap:unicode="false" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false"/>
+                <Property Name="Clasehab" Type="Edm.String" Nullable="false" MaxLength="5" sap:unicode="false" sap:creatable="false" sap:updatable="false" sap:sortable="false"/>
+                <Property Name="Region" Type="Edm.String" Nullable="false" MaxLength="4" sap:unicode="false" sap:creatable="false" sap:updatable="false" sap:sortable="false"/>
+                <Property Name="Empresa" Type="Edm.String" Nullable="false" MaxLength="4" sap:unicode="false" sap:label="Company Code" sap:creatable="false" sap:updatable="false" sap:sortable="false"/>
+                <Property Name="Posicion" Type="Edm.String" Nullable="false" MaxLength="6" sap:unicode="false" sap:label="Item" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false"/>
+                <Property Name="Mail" Type="Edm.String" Nullable="false" MaxLength="241" sap:unicode="false" sap:label="Mail address" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false"/>
+            </EntityType>
+            <EntityType Name="SeleccionSecretarias" sap:content-version="1">
+                <Key>
+                    <PropertyRef Name="Clasehab"/>
+                    <PropertyRef Name="Region"/>
+                    <PropertyRef Name="Empresa"/>
+                    <PropertyRef Name="Posicion"/>
+                </Key>
+                <Property Name="Clasehab" Type="Edm.String" Nullable="false" MaxLength="5" sap:unicode="false" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false"/>
+                <Property Name="Region" Type="Edm.String" Nullable="false" MaxLength="4" sap:unicode="false" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false"/>
+                <Property Name="Empresa" Type="Edm.String" Nullable="false" MaxLength="4" sap:unicode="false" sap:label="Company Code" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false"/>
+                <Property Name="Posicion" Type="Edm.String" Nullable="false" MaxLength="6" sap:unicode="false" sap:label="Item" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false"/>
+                <Property Name="Mail" Type="Edm.String" Nullable="false" MaxLength="241" sap:unicode="false" sap:label="Mail address" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false"/>
+            </EntityType>
+            <EntityType Name="TipoHabTct" sap:content-version="1">
+                <Key>
+                    <PropertyRef Name="Clase"/>
+                    <PropertyRef Name="Nivtenini"/>
+                </Key>
+                <Property Name="Clase" Type="Edm.String" Nullable="false" MaxLength="2" sap:unicode="false" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false"/>
+                <Property Name="Nivtenini" Type="Edm.String" Nullable="false" MaxLength="3" sap:unicode="false" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false"/>
+                <Property Name="Descripcion" Type="Edm.String" Nullable="false" MaxLength="40" sap:unicode="false" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false"/>
+            </EntityType>
+            <EntityType Name="CheckHabilitaciones" sap:content-version="1">
+                <Key>
+                    <PropertyRef Name="Clasehab"/>
+                    <PropertyRef Name="Tipohab"/>
+                    <PropertyRef Name="Tipodoc"/>
+                    <PropertyRef Name="Legajo"/>
+                </Key>
+                <Property Name="Clasehab" Type="Edm.String" Nullable="false" MaxLength="5" sap:unicode="false" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false"/>
+                <Property Name="Tipohab" Type="Edm.String" Nullable="false" MaxLength="3" sap:unicode="false" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false"/>
+                <Property Name="Tipodoc" Type="Edm.String" Nullable="false" MaxLength="1" sap:unicode="false" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false"/>
+                <Property Name="Legajo" Type="Edm.String" Nullable="false" MaxLength="8" sap:unicode="false" sap:label="Personnel No." sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false"/>
+                <Property Name="Nueva" Type="Edm.Boolean" Nullable="false" sap:unicode="false" sap:label="Indicator" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false"/>
+            </EntityType>
+            <EntityType Name="ValidateHabMTO" sap:content-version="1">
+                <Key>
+                    <PropertyRef Name="Clasehab"/>
+                    <PropertyRef Name="Tipohab"/>
+                    <PropertyRef Name="Tipodoc"/>
+                    <PropertyRef Name="Legajo"/>
+                    <PropertyRef Name="Area"/>
+                    <PropertyRef Name="Mto500"/>
+                    <PropertyRef Name="Mto220"/>
+                    <PropertyRef Name="Mto132"/>
+                    <PropertyRef Name="Mto66"/>
+                    <PropertyRef Name="Mto33"/>
+                    <PropertyRef Name="Mto13"/>
+                </Key>
+                <Property Name="Clasehab" Type="Edm.String" Nullable="false" MaxLength="5" sap:unicode="false" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false"/>
+                <Property Name="Tipohab" Type="Edm.String" Nullable="false" MaxLength="3" sap:unicode="false" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false"/>
+                <Property Name="Tipodoc" Type="Edm.String" Nullable="false" MaxLength="1" sap:unicode="false" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false"/>
+                <Property Name="Legajo" Type="Edm.String" Nullable="false" MaxLength="8" sap:unicode="false" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false"/>
+                <Property Name="Area" Type="Edm.String" Nullable="false" MaxLength="4" sap:unicode="false" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false"/>
+                <Property Name="Mto500" Type="Edm.String" Nullable="false" MaxLength="1" sap:unicode="false" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false"/>
+                <Property Name="Mto220" Type="Edm.String" Nullable="false" MaxLength="1" sap:unicode="false" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false"/>
+                <Property Name="Mto132" Type="Edm.String" Nullable="false" MaxLength="1" sap:unicode="false" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false"/>
+                <Property Name="Mto66" Type="Edm.String" Nullable="false" MaxLength="1" sap:unicode="false" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false"/>
+                <Property Name="Mto33" Type="Edm.String" Nullable="false" MaxLength="1" sap:unicode="false" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false"/>
+                <Property Name="Mto13" Type="Edm.String" Nullable="false" MaxLength="1" sap:unicode="false" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false"/>
+                <Property Name="Result" Type="Edm.String" Nullable="false" MaxLength="3" sap:unicode="false" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false"/>
+            </EntityType>
+            <EntityType Name="ComentariosHabilitaciones" sap:content-version="1">
+                <Key>
+                    <PropertyRef Name="Idhabilitacion"/>
+                    <PropertyRef Name="Clasehab"/>
+                    <PropertyRef Name="Empresa"/>
+                    <PropertyRef Name="Rol"/>
+                </Key>
+                <Property Name="Idhabilitacion" Type="Edm.String" Nullable="false" MaxLength="10" sap:unicode="false" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false"/>
+                <Property Name="Clasehab" Type="Edm.String" Nullable="false" MaxLength="5" sap:unicode="false" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false"/>
+                <Property Name="Empresa" Type="Edm.String" Nullable="false" MaxLength="4" sap:unicode="false" sap:label="Company Code" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false"/>
+                <Property Name="Rol" Type="Edm.String" Nullable="false" MaxLength="45" sap:unicode="false" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false"/>
+                <Property Name="Comentarios" Type="Edm.String" Nullable="false" sap:unicode="false" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false"/>
+            </EntityType>
+            <EntityType Name="CorporateGrpMail" sap:content-version="1">
+                <Key>
+                    <PropertyRef Name="Rol"/>
+                </Key>
+                <Property Name="Mandt" Type="Edm.String" Nullable="false" MaxLength="3" sap:unicode="false" sap:label="Client" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false"/>
+                <Property Name="Rol" Type="Edm.String" Nullable="false" MaxLength="30" sap:unicode="false" sap:label="Role" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false"/>
+                <Property Name="CorpGrp" Type="Edm.String" Nullable="false" MaxLength="50" sap:unicode="false" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false"/>
+                <Property Name="Nombre" Type="Edm.String" Nullable="false" MaxLength="25" sap:unicode="false" sap:label="First Name" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false"/>
+                <Property Name="Mail" Type="Edm.String" Nullable="false" MaxLength="241" sap:unicode="false" sap:label="E-Mail Address" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false"/>
+            </EntityType>
+            <EntityType Name="CorreoSociedadRegion" sap:content-version="1">
+                <Key>
+                    <PropertyRef Name="Sociedad"/>
+                    <PropertyRef Name="Region"/>
+                </Key>
+                <Property Name="Sociedad" Type="Edm.String" Nullable="false" MaxLength="4" sap:unicode="false" sap:label="Company Code" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false"/>
+                <Property Name="Region" Type="Edm.String" Nullable="false" MaxLength="4" sap:unicode="false" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false"/>
+                <Property Name="Grupocorporativo" Type="Edm.String" Nullable="false" MaxLength="40" sap:unicode="false" sap:label="Department" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false"/>
+                <Property Name="Direccioncorreo" Type="Edm.String" Nullable="false" MaxLength="80" sap:unicode="false" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false"/>
+                <Property Name="Rol" Type="Edm.String" Nullable="false" MaxLength="45" sap:unicode="false" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false"/>
+            </EntityType>
+            <Association Name="CreateLotes" sap:content-version="1">
+                <End Type="Z_SCP_HABILITACIONES_SRV.Lotes" Multiplicity="1" Role="FromRole_CreateLotes"/>
+                <End Type="Z_SCP_HABILITACIONES_SRV.HabRangos" Multiplicity="*" Role="ToRole_CreateLotes"/>
+            </Association>
+            <Association Name="Association_DesMant_Area" sap:content-version="1">
+                <End Type="Z_SCP_HABILITACIONES_SRV.DesMantenimiento" Multiplicity="1" Role="FromRole_Association_DesMant_Area"/>
+                <End Type="Z_SCP_HABILITACIONES_SRV.AreasEvaluacion" Multiplicity="1" Role="ToRole_Association_DesMant_Area"/>
+            </Association>
+            <Association Name="Association_PersonalHab_Area" sap:content-version="1">
+                <End Type="Z_SCP_HABILITACIONES_SRV.PersonalHabilitado" Multiplicity="1" Role="FromRole_Association_PersonalHab_Area"/>
+                <End Type="Z_SCP_HABILITACIONES_SRV.AreasMantenimiento" Multiplicity="1" Role="ToRole_Association_PersonalHab_Area"/>
+            </Association>
+            <Association Name="Association_PersonalHab_DesMant" sap:content-version="1">
+                <End Type="Z_SCP_HABILITACIONES_SRV.PersonalHabilitado" Multiplicity="1" Role="FromRole_Association_PersonalHab_DesMant"/>
+                <End Type="Z_SCP_HABILITACIONES_SRV.DesMantenimiento" Multiplicity="*" Role="ToRole_Association_PersonalHab_DesMant"/>
+            </Association>
+            <Association Name="Association_PersonalHab_AptoMedico" sap:content-version="1">
+                <End Type="Z_SCP_HABILITACIONES_SRV.PersonalHabilitado" Multiplicity="1" Role="FromRole_Association_PersonalHab_AptoMedico"/>
+                <End Type="Z_SCP_HABILITACIONES_SRV.DetAptoMedico" Multiplicity="*" Role="ToRole_Association_PersonalHab_AptoMedico"/>
+            </Association>
+            <Association Name="Association_PersonalHab_SegPublica" sap:content-version="1">
+                <End Type="Z_SCP_HABILITACIONES_SRV.PersonalHabilitado" Multiplicity="1" Role="FromRole_Association_PersonalHab_SegPublica"/>
+                <End Type="Z_SCP_HABILITACIONES_SRV.SeguridadPublica" Multiplicity="*" Role="ToRole_Association_PersonalHab_SegPublica"/>
+            </Association>
+            <Association Name="Association_PersonalHab_SegHig" sap:content-version="1">
+                <End Type="Z_SCP_HABILITACIONES_SRV.PersonalHabilitado" Multiplicity="1" Role="FromRole_Association_PersonalHab_SegHig"/>
+                <End Type="Z_SCP_HABILITACIONES_SRV.SeguridadHigiene" Multiplicity="*" Role="ToRole_Association_PersonalHab_SegHig"/>
+            </Association>
+            <Association Name="Association_PersonalHab_CETCT" sap:content-version="1">
+                <End Type="Z_SCP_HABILITACIONES_SRV.PersonalHabilitado" Multiplicity="1" Role="FromRole_Association_PersonalHab_CETCT"/>
+                <End Type="Z_SCP_HABILITACIONES_SRV.CapEntrenamientoTCT" Multiplicity="*" Role="ToRole_Association_PersonalHab_CETCT"/>
+            </Association>
+            <Association Name="TrabajosRealizadosToTareas" sap:content-version="1">
+                <End Type="Z_SCP_HABILITACIONES_SRV.TrabajosRealizados" Multiplicity="1" Role="FromRole_TrabajosRealizadosToTareas"/>
+                <End Type="Z_SCP_HABILITACIONES_SRV.Tareas" Multiplicity="*" Role="ToRole_TrabajosRealizadosToTareas"/>
+            </Association>
+            <Association Name="Hab_ApMedico2" sap:content-version="1">
+                <End Type="Z_SCP_HABILITACIONES_SRV.HabTecnicas2" Multiplicity="1" Role="FromRole_Hab_ApMedico2"/>
+                <End Type="Z_SCP_HABILITACIONES_SRV.AptoMedico2" Multiplicity="*" Role="ToRole_Hab_ApMedico2"/>
+                <ReferentialConstraint>
+                    <Principal Role="FromRole_Hab_ApMedico2">
+                        <PropertyRef Name="Legajo"/>
+                    </Principal>
+                    <Dependent Role="ToRole_Hab_ApMedico2">
+                        <PropertyRef Name="Legajo"/>
+                    </Dependent>
+                </ReferentialConstraint>
+            </Association>
+            <Association Name="Hab_SeguridadPublica" sap:content-version="1">
+                <End Type="Z_SCP_HABILITACIONES_SRV.HabTecnicas2" Multiplicity="1" Role="FromRole_Hab_SeguridadPublica"/>
+                <End Type="Z_SCP_HABILITACIONES_SRV.SeguridadPublica" Multiplicity="*" Role="ToRole_Hab_SeguridadPublica"/>
+                <ReferentialConstraint>
+                    <Principal Role="FromRole_Hab_SeguridadPublica">
+                        <PropertyRef Name="Legajo"/>
+                    </Principal>
+                    <Dependent Role="ToRole_Hab_SeguridadPublica">
+                        <PropertyRef Name="Legajo"/>
+                    </Dependent>
+                </ReferentialConstraint>
+            </Association>
+            <Association Name="Hab_SeguridadHigiene" sap:content-version="1">
+                <End Type="Z_SCP_HABILITACIONES_SRV.HabTecnicas2" Multiplicity="1" Role="FromRole_Hab_SeguridadHigiene"/>
+                <End Type="Z_SCP_HABILITACIONES_SRV.SeguridadHigiene" Multiplicity="*" Role="ToRole_Hab_SeguridadHigiene"/>
+                <ReferentialConstraint>
+                    <Principal Role="FromRole_Hab_SeguridadHigiene">
+                        <PropertyRef Name="Legajo"/>
+                    </Principal>
+                    <Dependent Role="ToRole_Hab_SeguridadHigiene">
+                        <PropertyRef Name="Legajo"/>
+                    </Dependent>
+                </ReferentialConstraint>
+            </Association>
+            <Association Name="Hab_CETCT" sap:content-version="1">
+                <End Type="Z_SCP_HABILITACIONES_SRV.HabTecnicas2" Multiplicity="1" Role="FromRole_Hab_CETCT"/>
+                <End Type="Z_SCP_HABILITACIONES_SRV.CapEntrenamientoTCT" Multiplicity="*" Role="ToRole_Hab_CETCT"/>
+                <ReferentialConstraint>
+                    <Principal Role="FromRole_Hab_CETCT">
+                        <PropertyRef Name="Legajo"/>
+                    </Principal>
+                    <Dependent Role="ToRole_Hab_CETCT">
+                        <PropertyRef Name="Legajo"/>
+                    </Dependent>
+                </ReferentialConstraint>
+            </Association>
+            <Association Name="Hab_DesMantenimiento" sap:content-version="1">
+                <End Type="Z_SCP_HABILITACIONES_SRV.HabTecnicas2" Multiplicity="1" Role="FromRole_Hab_DesMantenimiento"/>
+                <End Type="Z_SCP_HABILITACIONES_SRV.DesMantenimiento" Multiplicity="*" Role="ToRole_Hab_DesMantenimiento"/>
+                <ReferentialConstraint>
+                    <Principal Role="FromRole_Hab_DesMantenimiento">
+                        <PropertyRef Name="Legajo"/>
+                    </Principal>
+                    <Dependent Role="ToRole_Hab_DesMantenimiento">
+                        <PropertyRef Name="Legajo"/>
+                    </Dependent>
+                </ReferentialConstraint>
+            </Association>
+            <Association Name="Hab_Intervenciones" sap:content-version="1">
+                <End Type="Z_SCP_HABILITACIONES_SRV.HabTecnicas2" Multiplicity="1" Role="FromRole_Hab_Intervenciones"/>
+                <End Type="Z_SCP_HABILITACIONES_SRV.Intervenciones" Multiplicity="*" Role="ToRole_Hab_Intervenciones"/>
+                <ReferentialConstraint>
+                    <Principal Role="FromRole_Hab_Intervenciones">
+                        <PropertyRef Name="Legajo"/>
+                    </Principal>
+                    <Dependent Role="ToRole_Hab_Intervenciones">
+                        <PropertyRef Name="Legajo"/>
+                    </Dependent>
+                </ReferentialConstraint>
+            </Association>
+            <Association Name="ToAdjuntos" sap:content-version="1">
+                <End Type="Z_SCP_HABILITACIONES_SRV.Intervenciones" Multiplicity="1" Role="FromRole_ToAdjuntos"/>
+                <End Type="Z_SCP_HABILITACIONES_SRV.Adjuntos" Multiplicity="*" Role="ToRole_ToAdjuntos"/>
+            </Association>
+            <Association Name="IdHab_HabTecnica" sap:content-version="1">
+                <End Type="Z_SCP_HABILITACIONES_SRV.GuardarHabilitacion" Multiplicity="0..1" Role="FromRole_IdHab_HabTecnica"/>
+                <End Type="Z_SCP_HABILITACIONES_SRV.HabTecnicas" Multiplicity="*" Role="ToRole_IdHab_HabTecnica"/>
+                <ReferentialConstraint>
+                    <Principal Role="FromRole_IdHab_HabTecnica">
+                        <PropertyRef Name="IdHabilitacion"/>
+                    </Principal>
+                    <Dependent Role="ToRole_IdHab_HabTecnica">
+                        <PropertyRef Name="Idhabilitacion"/>
+                    </Dependent>
+                </ReferentialConstraint>
+            </Association>
+            <EntityContainer Name="Z_SCP_HABILITACIONES_SRV_Entities" m:IsDefaultEntityContainer="true" sap:supported-formats="atom json xlsx">
+                <EntitySet Name="MotivoCambioEstadoSet" EntityType="Z_SCP_HABILITACIONES_SRV.MotivoCambioEstado" sap:creatable="false" sap:updatable="false" sap:deletable="false" sap:pageable="false" sap:content-version="1"/>
+                <EntitySet Name="CampoEntrenamientoSet" EntityType="Z_SCP_HABILITACIONES_SRV.CampoEntrenamiento" sap:creatable="false" sap:updatable="false" sap:deletable="false" sap:pageable="false" sap:addressable="false" sap:content-version="1"/>
+                <EntitySet Name="ITrabajosRealizadosDetSet" EntityType="Z_SCP_HABILITACIONES_SRV.ITrabajosRealizadosDet" sap:creatable="false" sap:updatable="false" sap:deletable="false" sap:pageable="false" sap:content-version="1"/>
+                <EntitySet Name="TrabajosRealizDetSet" EntityType="Z_SCP_HABILITACIONES_SRV.TrabajosRealizDet" sap:creatable="false" sap:updatable="false" sap:deletable="false" sap:pageable="false" sap:content-version="1"/>
+                <EntitySet Name="CambioEstadoHabSet" EntityType="Z_SCP_HABILITACIONES_SRV.CambioEstadoHab" sap:creatable="false" sap:updatable="false" sap:deletable="false" sap:pageable="false" sap:addressable="false" sap:content-version="1"/>
+                <EntitySet Name="GuardarHabilitacionSet" EntityType="Z_SCP_HABILITACIONES_SRV.GuardarHabilitacion" sap:creatable="false" sap:updatable="false" sap:deletable="false" sap:pageable="false" sap:addressable="false" sap:content-version="1"/>
+                <EntitySet Name="HabTecnicas2Set" EntityType="Z_SCP_HABILITACIONES_SRV.HabTecnicas2" sap:creatable="false" sap:updatable="false" sap:deletable="false" sap:pageable="false" sap:content-version="1"/>
+                <EntitySet Name="HabTecnicas2001Set" EntityType="Z_SCP_HABILITACIONES_SRV.HabTecnicas2" sap:creatable="false" sap:updatable="false" sap:deletable="false" sap:pageable="false" sap:content-version="1"/>
+                <EntitySet Name="AptoMedico2Set" EntityType="Z_SCP_HABILITACIONES_SRV.AptoMedico2" sap:updatable="false" sap:deletable="false" sap:pageable="false" sap:content-version="1"/>
+                <EntitySet Name="TareasSet" EntityType="Z_SCP_HABILITACIONES_SRV.Tareas" sap:creatable="false" sap:updatable="false" sap:deletable="false" sap:pageable="false" sap:addressable="false" sap:content-version="1"/>
+                <EntitySet Name="EstructurasSet" EntityType="Z_SCP_HABILITACIONES_SRV.Estructuras" sap:creatable="false" sap:updatable="false" sap:deletable="false" sap:pageable="false" sap:addressable="false" sap:content-version="1"/>
+                <EntitySet Name="EquiposPorUsuarioSet" EntityType="Z_SCP_HABILITACIONES_SRV.EquiposPorUsuario" sap:creatable="false" sap:updatable="false" sap:deletable="false" sap:pageable="false" sap:content-version="1"/>
+                <EntitySet Name="FirmantesSet" EntityType="Z_SCP_HABILITACIONES_SRV.Firmantes" sap:creatable="false" sap:updatable="false" sap:deletable="false" sap:pageable="false" sap:addressable="false" sap:content-version="1"/>
+                <EntitySet Name="FirmasUsuariosBinSet" EntityType="Z_SCP_HABILITACIONES_SRV.FirmasUsuariosBin" sap:creatable="false" sap:updatable="false" sap:deletable="false" sap:pageable="false" sap:addressable="false" sap:content-version="1"/>
+                <EntitySet Name="CapacitacionCotSet" EntityType="Z_SCP_HABILITACIONES_SRV.CapacitacionCot" sap:creatable="false" sap:updatable="false" sap:deletable="false" sap:pageable="false" sap:content-version="1"/>
+                <EntitySet Name="EvaluadoresSet" EntityType="Z_SCP_HABILITACIONES_SRV.Evaluadores" sap:creatable="false" sap:updatable="false" sap:deletable="false" sap:pageable="false" sap:content-version="1"/>
+                <EntitySet Name="DestinatariosSet" EntityType="Z_SCP_HABILITACIONES_SRV.Destinatarios" sap:creatable="false" sap:updatable="false" sap:deletable="false" sap:pageable="false" sap:addressable="false" sap:content-version="1"/>
+                <EntitySet Name="WfDefinitionsSet" EntityType="Z_SCP_HABILITACIONES_SRV.WfDefinitions" sap:creatable="false" sap:updatable="false" sap:deletable="false" sap:pageable="false" sap:addressable="false" sap:content-version="1"/>
+                <EntitySet Name="RolesWfSet" EntityType="Z_SCP_HABILITACIONES_SRV.RolesWf" sap:creatable="false" sap:updatable="false" sap:deletable="false" sap:pageable="false" sap:content-version="1"/>
+                <EntitySet Name="CancelarHabilitacionSet" EntityType="Z_SCP_HABILITACIONES_SRV.CancelarHabilitacion" sap:creatable="false" sap:updatable="false" sap:deletable="false" sap:pageable="false" sap:addressable="false" sap:content-version="1"/>
+                <EntitySet Name="PersonalHabilitadoSet" EntityType="Z_SCP_HABILITACIONES_SRV.PersonalHabilitado" sap:creatable="false" sap:updatable="false" sap:deletable="false" sap:pageable="false" sap:content-version="1"/>
+                <EntitySet Name="DesMantenimientoSet" EntityType="Z_SCP_HABILITACIONES_SRV.DesMantenimiento" sap:creatable="false" sap:updatable="false" sap:deletable="false" sap:pageable="false" sap:content-version="1"/>
+                <EntitySet Name="DetAptoMedicoSet" EntityType="Z_SCP_HABILITACIONES_SRV.DetAptoMedico" sap:creatable="false" sap:updatable="false" sap:deletable="false" sap:pageable="false" sap:content-version="1"/>
+                <EntitySet Name="SeguridadPublicaSet" EntityType="Z_SCP_HABILITACIONES_SRV.SeguridadPublica" sap:creatable="false" sap:updatable="false" sap:deletable="false" sap:pageable="false" sap:content-version="1"/>
+                <EntitySet Name="SeguridadHigieneSet" EntityType="Z_SCP_HABILITACIONES_SRV.SeguridadHigiene" sap:creatable="false" sap:updatable="false" sap:deletable="false" sap:pageable="false" sap:content-version="1"/>
+                <EntitySet Name="CapEntrenamientoTCTSet" EntityType="Z_SCP_HABILITACIONES_SRV.CapEntrenamientoTCT" sap:creatable="false" sap:updatable="false" sap:deletable="false" sap:pageable="false" sap:content-version="1"/>
+                <EntitySet Name="AreasEvaluacionSet" EntityType="Z_SCP_HABILITACIONES_SRV.AreasEvaluacion" sap:creatable="false" sap:updatable="false" sap:deletable="false" sap:pageable="false" sap:content-version="1"/>
+                <EntitySet Name="AreasMantenimientoSet" EntityType="Z_SCP_HABILITACIONES_SRV.AreasMantenimiento" sap:creatable="false" sap:updatable="false" sap:deletable="false" sap:pageable="false" sap:content-version="1"/>
+                <EntitySet Name="TrabajosRealizadosSet" EntityType="Z_SCP_HABILITACIONES_SRV.TrabajosRealizados" sap:creatable="false" sap:updatable="false" sap:deletable="false" sap:pageable="false" sap:addressable="false" sap:content-version="1"/>
+                <EntitySet Name="EmpresasSet" EntityType="Z_SCP_HABILITACIONES_SRV.Empresas" sap:creatable="false" sap:updatable="false" sap:deletable="false" sap:pageable="false" sap:addressable="false" sap:content-version="1"/>
+                <EntitySet Name="PersonalInternoSet" EntityType="Z_SCP_HABILITACIONES_SRV.PersonalInterno" sap:creatable="false" sap:updatable="false" sap:deletable="false" sap:pageable="false" sap:addressable="false" sap:content-version="1"/>
+                <EntitySet Name="FuncionesSet" EntityType="Z_SCP_HABILITACIONES_SRV.Funciones" sap:creatable="false" sap:updatable="false" sap:deletable="false" sap:pageable="false" sap:addressable="false" sap:content-version="1"/>
+                <EntitySet Name="RegionesSet" EntityType="Z_SCP_HABILITACIONES_SRV.Regiones" sap:creatable="false" sap:updatable="false" sap:deletable="false" sap:pageable="false" sap:addressable="false" sap:content-version="1"/>
+                <EntitySet Name="UsuariosSapSet" EntityType="Z_SCP_HABILITACIONES_SRV.UsuariosSap" sap:creatable="false" sap:updatable="false" sap:deletable="false" sap:pageable="false" sap:addressable="false" sap:content-version="1"/>
+                <EntitySet Name="FirmasUsuariosSet" EntityType="Z_SCP_HABILITACIONES_SRV.FirmasUsuarios" sap:creatable="false" sap:updatable="false" sap:deletable="false" sap:pageable="false" sap:addressable="false" sap:content-version="1"/>
+                <EntitySet Name="HabTecnicasSet" EntityType="Z_SCP_HABILITACIONES_SRV.HabTecnicas" sap:creatable="false" sap:updatable="false" sap:deletable="false" sap:pageable="false" sap:addressable="false" sap:content-version="1"/>
+                <EntitySet Name="IntervencionesSet" EntityType="Z_SCP_HABILITACIONES_SRV.Intervenciones" sap:creatable="false" sap:updatable="false" sap:deletable="false" sap:pageable="false" sap:content-version="1"/>
+                <EntitySet Name="TipoHabilitacionSet" EntityType="Z_SCP_HABILITACIONES_SRV.TipoHabilitacion" sap:creatable="false" sap:updatable="false" sap:deletable="false" sap:pageable="false" sap:addressable="false" sap:content-version="1"/>
+                <EntitySet Name="ClaseHabilitacionSet" EntityType="Z_SCP_HABILITACIONES_SRV.ClaseHabilitacion" sap:creatable="false" sap:updatable="false" sap:deletable="false" sap:pageable="false" sap:addressable="false" sap:content-version="1"/>
+                <EntitySet Name="AdjuntosSet" EntityType="Z_SCP_HABILITACIONES_SRV.Adjuntos" sap:creatable="false" sap:updatable="false" sap:deletable="false" sap:pageable="false" sap:content-version="1"/>
+                <EntitySet Name="HabRangosSet" EntityType="Z_SCP_HABILITACIONES_SRV.HabRangos" sap:creatable="false" sap:updatable="false" sap:deletable="false" sap:pageable="false" sap:addressable="false" sap:content-version="1"/>
+                <EntitySet Name="LotesSet" EntityType="Z_SCP_HABILITACIONES_SRV.Lotes" sap:creatable="false" sap:updatable="false" sap:deletable="false" sap:pageable="false" sap:addressable="false" sap:content-version="1"/>
+                <EntitySet Name="TipoHabSet" EntityType="Z_SCP_HABILITACIONES_SRV.TipoHab" sap:creatable="false" sap:updatable="false" sap:deletable="false" sap:pageable="false" sap:content-version="1"/>
+                <EntitySet Name="PersonalInternoMtoSet" EntityType="Z_SCP_HABILITACIONES_SRV.PersonalInternoMto" sap:creatable="false" sap:updatable="false" sap:deletable="false" sap:pageable="false" sap:addressable="false" sap:content-version="1"/>
+                <EntitySet Name="EdicionGestCalidadSet" EntityType="Z_SCP_HABILITACIONES_SRV.EdicionGestCalidad" sap:creatable="false" sap:updatable="false" sap:deletable="false" sap:pageable="false" sap:addressable="false" sap:content-version="1"/>
+                <EntitySet Name="TareasTCTSet" EntityType="Z_SCP_HABILITACIONES_SRV.TareasTCT" sap:creatable="false" sap:updatable="false" sap:deletable="false" sap:pageable="false" sap:addressable="false" sap:content-version="1"/>
+                <EntitySet Name="GestionTareasTCTSet" EntityType="Z_SCP_HABILITACIONES_SRV.GestionTareasTCT" sap:creatable="false" sap:updatable="false" sap:deletable="false" sap:pageable="false" sap:content-version="1"/>
+                <EntitySet Name="SeleccionGerentesSet" EntityType="Z_SCP_HABILITACIONES_SRV.SeleccionGerentes" sap:creatable="false" sap:updatable="false" sap:deletable="false" sap:pageable="false" sap:content-version="1"/>
+                <EntitySet Name="SeleccionSecretariasSet" EntityType="Z_SCP_HABILITACIONES_SRV.SeleccionSecretarias" sap:creatable="false" sap:updatable="false" sap:deletable="false" sap:pageable="false" sap:content-version="1"/>
+                <EntitySet Name="TipoHabTctSet" EntityType="Z_SCP_HABILITACIONES_SRV.TipoHabTct" sap:creatable="false" sap:updatable="false" sap:deletable="false" sap:pageable="false" sap:content-version="1"/>
+                <EntitySet Name="CheckHabilitacionesSet" EntityType="Z_SCP_HABILITACIONES_SRV.CheckHabilitaciones" sap:creatable="false" sap:updatable="false" sap:deletable="false" sap:pageable="false" sap:content-version="1"/>
+                <EntitySet Name="ValidateHabMTOSet" EntityType="Z_SCP_HABILITACIONES_SRV.ValidateHabMTO" sap:creatable="false" sap:updatable="false" sap:deletable="false" sap:pageable="false" sap:content-version="1"/>
+                <EntitySet Name="ComentariosHabilitacionesSet" EntityType="Z_SCP_HABILITACIONES_SRV.ComentariosHabilitaciones" sap:creatable="false" sap:updatable="false" sap:deletable="false" sap:pageable="false" sap:content-version="1"/>
+                <EntitySet Name="CorporateGrpMailSet" EntityType="Z_SCP_HABILITACIONES_SRV.CorporateGrpMail" sap:creatable="false" sap:updatable="false" sap:deletable="false" sap:pageable="false" sap:addressable="false" sap:content-version="1"/>
+                <EntitySet Name="CorreoSociedadRegionSet" EntityType="Z_SCP_HABILITACIONES_SRV.CorreoSociedadRegion" sap:creatable="false" sap:updatable="false" sap:deletable="false" sap:pageable="false" sap:content-version="1"/>
+                <AssociationSet Name="Association_PersonalHab_DesMantSet" Association="Z_SCP_HABILITACIONES_SRV.Association_PersonalHab_DesMant" sap:creatable="false" sap:updatable="false" sap:deletable="false" sap:content-version="1">
+                    <End EntitySet="PersonalHabilitadoSet" Role="FromRole_Association_PersonalHab_DesMant"/>
+                    <End EntitySet="DesMantenimientoSet" Role="ToRole_Association_PersonalHab_DesMant"/>
+                </AssociationSet>
+                <AssociationSet Name="IdHab_HabTecnicaSet" Association="Z_SCP_HABILITACIONES_SRV.IdHab_HabTecnica" sap:creatable="false" sap:updatable="false" sap:deletable="false" sap:content-version="1">
+                    <End EntitySet="GuardarHabilitacionSet" Role="FromRole_IdHab_HabTecnica"/>
+                    <End EntitySet="HabTecnicasSet" Role="ToRole_IdHab_HabTecnica"/>
+                </AssociationSet>
+                <AssociationSet Name="Hab_DesMantenimientoSet" Association="Z_SCP_HABILITACIONES_SRV.Hab_DesMantenimiento" sap:creatable="false" sap:updatable="false" sap:deletable="false" sap:content-version="1">
+                    <End EntitySet="HabTecnicas2Set" Role="FromRole_Hab_DesMantenimiento"/>
+                    <End EntitySet="DesMantenimientoSet" Role="ToRole_Hab_DesMantenimiento"/>
+                </AssociationSet>
+                <AssociationSet Name="TrabajosRealizadosToTareasSet" Association="Z_SCP_HABILITACIONES_SRV.TrabajosRealizadosToTareas" sap:creatable="false" sap:updatable="false" sap:deletable="false" sap:content-version="1">
+                    <End EntitySet="TrabajosRealizadosSet" Role="FromRole_TrabajosRealizadosToTareas"/>
+                    <End EntitySet="TareasSet" Role="ToRole_TrabajosRealizadosToTareas"/>
+                </AssociationSet>
+                <AssociationSet Name="Association_PersonalHab_SegPublicaSet" Association="Z_SCP_HABILITACIONES_SRV.Association_PersonalHab_SegPublica" sap:creatable="false" sap:updatable="false" sap:deletable="false" sap:content-version="1">
+                    <End EntitySet="PersonalHabilitadoSet" Role="FromRole_Association_PersonalHab_SegPublica"/>
+                    <End EntitySet="SeguridadPublicaSet" Role="ToRole_Association_PersonalHab_SegPublica"/>
+                </AssociationSet>
+                <AssociationSet Name="Association_PersonalHab_CETCTSet" Association="Z_SCP_HABILITACIONES_SRV.Association_PersonalHab_CETCT" sap:creatable="false" sap:updatable="false" sap:deletable="false" sap:content-version="1">
+                    <End EntitySet="PersonalHabilitadoSet" Role="FromRole_Association_PersonalHab_CETCT"/>
+                    <End EntitySet="CapEntrenamientoTCTSet" Role="ToRole_Association_PersonalHab_CETCT"/>
+                </AssociationSet>
+                <AssociationSet Name="Association_PersonalHab_AptoMedicoSet" Association="Z_SCP_HABILITACIONES_SRV.Association_PersonalHab_AptoMedico" sap:creatable="false" sap:updatable="false" sap:deletable="false" sap:content-version="1">
+                    <End EntitySet="PersonalHabilitadoSet" Role="FromRole_Association_PersonalHab_AptoMedico"/>
+                    <End EntitySet="DetAptoMedicoSet" Role="ToRole_Association_PersonalHab_AptoMedico"/>
+                </AssociationSet>
+                <AssociationSet Name="Hab_SeguridadPublicaSet" Association="Z_SCP_HABILITACIONES_SRV.Hab_SeguridadPublica" sap:creatable="false" sap:updatable="false" sap:deletable="false" sap:content-version="1">
+                    <End EntitySet="HabTecnicas2Set" Role="FromRole_Hab_SeguridadPublica"/>
+                    <End EntitySet="SeguridadPublicaSet" Role="ToRole_Hab_SeguridadPublica"/>
+                </AssociationSet>
+                <AssociationSet Name="Hab_SeguridadHigieneSet" Association="Z_SCP_HABILITACIONES_SRV.Hab_SeguridadHigiene" sap:creatable="false" sap:updatable="false" sap:deletable="false" sap:content-version="1">
+                    <End EntitySet="HabTecnicas2Set" Role="FromRole_Hab_SeguridadHigiene"/>
+                    <End EntitySet="SeguridadHigieneSet" Role="ToRole_Hab_SeguridadHigiene"/>
+                </AssociationSet>
+                <AssociationSet Name="Association_PersonalHab_AreaSet" Association="Z_SCP_HABILITACIONES_SRV.Association_PersonalHab_Area" sap:creatable="false" sap:updatable="false" sap:deletable="false" sap:content-version="1">
+                    <End EntitySet="PersonalHabilitadoSet" Role="FromRole_Association_PersonalHab_Area"/>
+                    <End EntitySet="AreasMantenimientoSet" Role="ToRole_Association_PersonalHab_Area"/>
+                </AssociationSet>
+                <AssociationSet Name="Hab_IntervencionesSet" Association="Z_SCP_HABILITACIONES_SRV.Hab_Intervenciones" sap:creatable="false" sap:updatable="false" sap:deletable="false" sap:content-version="1">
+                    <End EntitySet="HabTecnicas2Set" Role="FromRole_Hab_Intervenciones"/>
+                    <End EntitySet="IntervencionesSet" Role="ToRole_Hab_Intervenciones"/>
+                </AssociationSet>
+                <AssociationSet Name="Hab_CECTCSet" Association="Z_SCP_HABILITACIONES_SRV.Hab_CETCT" sap:creatable="false" sap:updatable="false" sap:deletable="false" sap:content-version="1">
+                    <End EntitySet="HabTecnicas2Set" Role="FromRole_Hab_CETCT"/>
+                    <End EntitySet="CapEntrenamientoTCTSet" Role="ToRole_Hab_CETCT"/>
+                </AssociationSet>
+                <AssociationSet Name="CreateLotesSet" Association="Z_SCP_HABILITACIONES_SRV.CreateLotes" sap:creatable="false" sap:updatable="false" sap:deletable="false" sap:content-version="1">
+                    <End EntitySet="LotesSet" Role="FromRole_CreateLotes"/>
+                    <End EntitySet="HabRangosSet" Role="ToRole_CreateLotes"/>
+                </AssociationSet>
+                <AssociationSet Name="Association_PersonalHab_SegHigSet" Association="Z_SCP_HABILITACIONES_SRV.Association_PersonalHab_SegHig" sap:creatable="false" sap:updatable="false" sap:deletable="false" sap:content-version="1">
+                    <End EntitySet="PersonalHabilitadoSet" Role="FromRole_Association_PersonalHab_SegHig"/>
+                    <End EntitySet="SeguridadHigieneSet" Role="ToRole_Association_PersonalHab_SegHig"/>
+                </AssociationSet>
+                <AssociationSet Name="ToAdjuntos_AssocSet" Association="Z_SCP_HABILITACIONES_SRV.ToAdjuntos" sap:creatable="false" sap:updatable="false" sap:deletable="false" sap:content-version="1">
+                    <End EntitySet="IntervencionesSet" Role="FromRole_ToAdjuntos"/>
+                    <End EntitySet="AdjuntosSet" Role="ToRole_ToAdjuntos"/>
+                </AssociationSet>
+                <AssociationSet Name="Hab_ApMedico2Set" Association="Z_SCP_HABILITACIONES_SRV.Hab_ApMedico2" sap:creatable="false" sap:updatable="false" sap:deletable="false" sap:content-version="1">
+                    <End EntitySet="HabTecnicas2Set" Role="FromRole_Hab_ApMedico2"/>
+                    <End EntitySet="AptoMedico2Set" Role="ToRole_Hab_ApMedico2"/>
+                </AssociationSet>
+                <AssociationSet Name="Association_DesMant_AreaSet" Association="Z_SCP_HABILITACIONES_SRV.Association_DesMant_Area" sap:creatable="false" sap:updatable="false" sap:deletable="false" sap:content-version="1">
+                    <End EntitySet="DesMantenimientoSet" Role="FromRole_Association_DesMant_Area"/>
+                    <End EntitySet="AreasEvaluacionSet" Role="ToRole_Association_DesMant_Area"/>
+                </AssociationSet>
+            </EntityContainer>
+            <Annotation Term="Core.SchemaVersion" String="1.0.0" xmlns="http://docs.oasis-open.org/odata/ns/edm"/>
+            <atom:link rel="self" href="/sap/opu/odata/sap/Z_SCP_HABILITACIONES_SRV/$metadata" xmlns:atom="http://www.w3.org/2005/Atom"/>
+            <atom:link rel="latest-version" href="/sap/opu/odata/sap/Z_SCP_HABILITACIONES_SRV/$metadata" xmlns:atom="http://www.w3.org/2005/Atom"/>
+        </Schema>
+    </edmx:DataServices>
+</edmx:Edmx>
