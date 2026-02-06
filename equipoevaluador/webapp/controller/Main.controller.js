@@ -545,34 +545,7 @@ sap.ui.define([
                     return;
                 }
                 
-                // Guardar las selecciones actuales ANTES de filtrar (usando Legajo como identificador único)
-                var aSeleccionesGuardadas = oModel.getProperty("/SeleccionesGuardadas") || [];
-                var aSeleccionesActuales = [];
-                
-                if (oTable) {
-                    var aSelectedItems = oTable.getSelectedItems();
-                    aSelectedItems.forEach(function(oItem) {
-                        var oContext = oItem.getBindingContext("Evaluadores");
-                        if (oContext) {
-                            var oObject = oContext.getObject();
-                            if (oObject && oObject.Legajo) {
-                                var sLegajo = oObject.Legajo;
-                                if (aSeleccionesActuales.indexOf(sLegajo) === -1) {
-                                    aSeleccionesActuales.push(sLegajo);
-                                }
-                            }
-                        }
-                    });
-                    
-                    // Combinar con las selecciones guardadas anteriormente
-                    aSeleccionesActuales.forEach(function(sLegajo) {
-                        if (aSeleccionesGuardadas.indexOf(sLegajo) === -1) {
-                            aSeleccionesGuardadas.push(sLegajo);
-                        }
-                    });
-                }
-                
-                // Obtener el valor del search field
+                // Obtener el valor del search field PRIMERO para saber si se está limpiando
                 if (oEvent.getParameter) {
                     // Para liveChange, usar newValue (incluye cuando se limpia con la cruz)
                     sSearchValue = oEvent.getParameter("newValue");
@@ -591,6 +564,38 @@ sap.ui.define([
                 
                 // Asegurar que sea string
                 sSearchValue = (sSearchValue || "").toString().trim();
+                
+                // Obtener las selecciones guardadas acumuladas
+                var aSeleccionesGuardadas = oModel.getProperty("/SeleccionesGuardadas") || [];
+                
+                // Si NO se está limpiando el filtro (hay texto), guardar las selecciones actuales
+                if (sSearchValue && sSearchValue !== "") {
+                    var aSeleccionesActuales = [];
+                    
+                    if (oTable) {
+                        var aSelectedItems = oTable.getSelectedItems();
+                        aSelectedItems.forEach(function(oItem) {
+                            var oContext = oItem.getBindingContext("Evaluadores");
+                            if (oContext) {
+                                var oObject = oContext.getObject();
+                                if (oObject && oObject.Legajo) {
+                                    var sLegajo = oObject.Legajo;
+                                    if (aSeleccionesActuales.indexOf(sLegajo) === -1) {
+                                        aSeleccionesActuales.push(sLegajo);
+                                    }
+                                }
+                            }
+                        });
+                        
+                        // Combinar con las selecciones guardadas anteriormente
+                        aSeleccionesActuales.forEach(function(sLegajo) {
+                            if (aSeleccionesGuardadas.indexOf(sLegajo) === -1) {
+                                aSeleccionesGuardadas.push(sLegajo);
+                            }
+                        });
+                    }
+                }
+                // Si se está limpiando (sSearchValue está vacío), mantener las selecciones guardadas acumuladas
                 
                 // Guardar todas las selecciones acumuladas
                 oModel.setProperty("/SeleccionesGuardadas", aSeleccionesGuardadas);
@@ -648,7 +653,12 @@ sap.ui.define([
                     var aItems = oTable.getItems();
                     var aSelecciones = aSeleccionesParaRestaurar;
                     
-                    if (aItems.length === 0 || aSelecciones.length === 0) {
+                    if (aItems.length === 0) {
+                        return;
+                    }
+                    
+                    // Si no hay selecciones para restaurar, no hacer nada
+                    if (!aSelecciones || aSelecciones.length === 0) {
                         return;
                     }
                     
@@ -673,17 +683,28 @@ sap.ui.define([
                     
                     // Primero, asegurarse de que NO hay selecciones por defecto
                     aItemsValidos.forEach(function(oItemData) {
-                        if (oItemData.item.getSelected && oItemData.item.getSelected()) {
-                            oTable.setSelectedItem(oItemData.item, false);
+                        try {
+                            if (oItemData.item.getSelected && oItemData.item.getSelected()) {
+                                oTable.setSelectedItem(oItemData.item, false);
+                            }
+                        } catch (e) {
+                            // Ignorar errores al deseleccionar
                         }
                     });
                     
-                    // Luego, seleccionar SOLO los items que corresponden a los Legajos guardados
-                    aItemsValidos.forEach(function(oItemData) {
-                        if (aSelecciones.indexOf(oItemData.legajo) !== -1) {
-                            oTable.setSelectedItem(oItemData.item, true);
-                        }
-                    });
+                    // Pequeña pausa para asegurar que las deselecciones se procesen
+                    setTimeout(function() {
+                        // Luego, seleccionar SOLO los items que corresponden a los Legajos guardados
+                        aItemsValidos.forEach(function(oItemData) {
+                            try {
+                                if (aSelecciones.indexOf(oItemData.legajo) !== -1) {
+                                    oTable.setSelectedItem(oItemData.item, true);
+                                }
+                            } catch (e) {
+                                // Ignorar errores al seleccionar
+                            }
+                        });
+                    }, 50);
                 };
                 
                 // Usar el evento updateFinished del binding
