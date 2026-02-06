@@ -1,10 +1,13 @@
 sap.ui.define([
     "sap/ui/core/mvc/Controller",
     "sap/ui/model/json/JSONModel",
+    "sap/ui/model/Filter",
+    "sap/ui/model/FilterOperator",
 
     "sap/m/Dialog",
     "sap/m/Button",
     "sap/m/Bar",
+    "sap/m/OverflowToolbar",
     "sap/m/SearchField",
     "sap/m/Label",
     "sap/m/Text",
@@ -20,9 +23,12 @@ sap.ui.define([
 ], function (
     Controller,
     JSONModel,
+    Filter,
+    FilterOperator,
     Dialog,
     Button,
     Bar,
+    OverflowToolbar,
     SearchField,
     Label,
     Text,
@@ -278,15 +284,13 @@ sap.ui.define([
                     press: [this.selectedEvaluatorFromUiTable, this]
                 }),
 
-                subHeader: new Bar({
-                    contentMiddle: [
+                subHeader: new OverflowToolbar({
+                    content: [
                         new SearchField({
                             id: this.createId("oSearchEvaluadores"),
                             placeholder: "Buscar por Legajo, Nombre o Apellido",
-                            width: "100%",
-                            showSearchButton: true,
-                            liveChange: [this.onSearchEvaluadoresUiTable, this],
-                            search: [this.onSearchEvaluadoresUiTable, this]
+                            width: "80%",
+                            liveChange: [this.onSearchEvaluadores, this]
                         })
                     ]
                 }),
@@ -408,45 +412,31 @@ sap.ui.define([
             }, 0);
         },
 
-        onSearchEvaluadoresUiTable: function (oEvent) {
-            var oModel = this.getView().getModel("Evaluadores");
-            if (!oModel) return;
+        onSearchEvaluadores: function (oEvent) {
+            var sQuery = (oEvent.getSource().getValue() || "").trim();
+            var oTable = this.byId("UiTableEvaluador");
+            if (!oTable) return;
 
-            var sSearchValue = "";
-            if (oEvent.getParameter) {
-                sSearchValue = oEvent.getParameter("newValue");
-                if (sSearchValue === undefined) sSearchValue = oEvent.getParameter("query");
-            }
-            sSearchValue = (sSearchValue || "").toString().trim();
+            var oBinding = oTable.getBinding("rows");
+            if (!oBinding) return;
 
-            // ✅ Guardar selección actual ANTES de cambiar los datos (filtrar/limpiar), así no se pierde
-            this._syncSelectionFromUiTable();
-
-            var aAll = oModel.getProperty("/EvaluadoresCompletos") || [];
-
-            // ✅ mientras cambiamos dataset por filtro/clear, NO sync selección (evita guardar [])
-            this._bSuppressSelectionSync = true;
-
-            if (!sSearchValue) {
-                oModel.setProperty("/Evaluadores", aAll);
-                oModel.setProperty("/FilterValue", "");
-            } else {
-                var q = sSearchValue.toLowerCase();
-                var aFiltered = aAll.filter(function (e) {
-                    var n = (e.Nombre || "").toLowerCase();
-                    var a = (e.Apellido || "").toLowerCase();
-                    var l = (e.Legajo || "").toLowerCase();
-                    return n.indexOf(q) !== -1 || a.indexOf(q) !== -1 || l.indexOf(q) !== -1;
+            var aFilters = [];
+            if (sQuery && sQuery.length > 0) {
+                var oFilter = new Filter({
+                    filters: [
+                        new Filter("Nombre", FilterOperator.Contains, sQuery),
+                        new Filter("Apellido", FilterOperator.Contains, sQuery),
+                        new Filter("Legajo", FilterOperator.Contains, sQuery)
+                    ],
+                    and: false
                 });
-                oModel.setProperty("/Evaluadores", aFiltered);
-                oModel.setProperty("/FilterValue", sSearchValue);
+                aFilters.push(oFilter);
             }
 
-            var that = this;
-            setTimeout(function () {
-                // _restoreSelectionToUiTable vuelve a habilitar sync al final
-                that._restoreSelectionToUiTable();
-            }, 0);
+            oBinding.filter(aFilters, "Application");
+
+            var oModel = this.getView().getModel("Evaluadores");
+            if (oModel) oModel.setProperty("/FilterValue", sQuery);
         },
 
         selectedEvaluatorFromUiTable: function () {

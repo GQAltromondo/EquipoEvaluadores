@@ -11,17 +11,13 @@
         afterClose=".onAfterCloseEvaluadoresDialog">
 
         <subHeader>
-            <Bar>
-                <contentMiddle>
-                    <SearchField
-                        id="searchEvaluadores"
-                        width="100%"
-                        placeholder="Buscar por Legajo, Nombre o Apellido"
-                        showSearchButton="true"
-                        liveChange=".onSearchEvaluadoresUiTable"
-                        search=".onSearchEvaluadoresUiTable" />
-                </contentMiddle>
-            </Bar>
+            <OverflowToolbar>
+                <SearchField
+                    id="searchEvaluadores"
+                    width="80%"
+                    placeholder="Buscar por Legajo, Nombre o Apellido"
+                    liveChange=".onSearchEvaluadores" />
+            </OverflowToolbar>
         </subHeader>
 
         <content>
