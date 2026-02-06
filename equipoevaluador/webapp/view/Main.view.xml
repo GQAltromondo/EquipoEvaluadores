@@ -198,7 +198,7 @@
 														</HBox>
 													</VBox>
 													<Button 
-														icon="sap-icon://favorite"
+														icon="{= ${EvaluadoresModel>Favorito} ? 'sap-icon://favorite' : 'sap-icon://unfavorite'}"
 														type="{= ${EvaluadoresModel>Favorito} ? 'Emphasized' : 'Transparent'}"
 														press="onToggleFavorito"
 														tooltip="{= ${EvaluadoresModel>Favorito} ? 'Quitar de favoritos' : 'Marcar como favorito'}"
