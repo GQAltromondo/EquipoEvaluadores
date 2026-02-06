@@ -240,8 +240,8 @@ sap.ui.define([
                     stretch: true,
                     afterClose: [this.afterCloseDialog, this],
                     beginButton: new sap.m.Button({
-                        icon: "sap-icon://sys-cancel",
-                        tooltip: "{i18n>Close}",
+                        text: "Cancelar",
+                        tooltip: "Cancelar",
                         press: [this.closeDialog, this]
                     }),
                     endButton: new sap.m.Button({
@@ -595,6 +595,22 @@ sap.ui.define([
                 // Guardar todas las selecciones acumuladas
                 oModel.setProperty("/SeleccionesGuardadas", aSeleccionesGuardadas);
                 
+                // Limpiar TODAS las selecciones ANTES de actualizar el binding
+                // Esto evita que se mantengan selecciones por índice
+                if (oTable) {
+                    try {
+                        // Intentar limpiar todas las selecciones
+                        var aCurrentItems = oTable.getItems();
+                        aCurrentItems.forEach(function(oItem) {
+                            if (oItem.getSelected && oItem.getSelected()) {
+                                oTable.setSelectedItem(oItem, false);
+                            }
+                        });
+                    } catch (e) {
+                        console.warn("Error al limpiar selecciones:", e);
+                    }
+                }
+                
                 // Filtrar localmente sobre los datos ya cargados
                 var aEvaluadoresCompletos = oModel.getProperty("/EvaluadoresCompletos") || [];
                 
@@ -617,38 +633,78 @@ sap.ui.define([
                     oModel.setProperty("/FilterValue", sSearchValue);
                 }
                 
+                // Guardar las selecciones antes de actualizar el binding
+                var aSeleccionesParaRestaurar = aSeleccionesGuardadas.slice();
+                
                 oModel.updateBindings(true);
                 
                 // Restaurar las selecciones después de que el binding se actualice
                 var that = this;
                 var fnRestoreSelections = function() {
-                    if (oTable) {
-                        var aItems = oTable.getItems();
-                        var aSelecciones = oModel.getProperty("/SeleccionesGuardadas") || [];
-                        
-                        // Limpiar todas las selecciones primero
-                        oTable.removeSelections();
-                        
-                        // Restaurar las selecciones basadas en Legajo
-                        aItems.forEach(function(oItem) {
-                            var oContext = oItem.getBindingContext("Evaluadores");
-                            if (oContext) {
-                                var oObject = oContext.getObject();
-                                if (oObject && aSelecciones.indexOf(oObject.Legajo) !== -1) {
-                                    oTable.setSelectedItem(oItem, true);
-                                }
-                            }
-                        });
+                    if (!oTable) {
+                        return;
                     }
+                    
+                    var aItems = oTable.getItems();
+                    var aSelecciones = aSeleccionesParaRestaurar;
+                    
+                    if (aItems.length === 0 || aSelecciones.length === 0) {
+                        return;
+                    }
+                    
+                    // Asegurarse de que todos los items tengan binding context válido
+                    var aItemsValidos = [];
+                    aItems.forEach(function(oItem) {
+                        var oContext = oItem.getBindingContext("Evaluadores");
+                        if (oContext) {
+                            try {
+                                var oObject = oContext.getObject();
+                                if (oObject && oObject.Legajo) {
+                                    aItemsValidos.push({
+                                        item: oItem,
+                                        legajo: oObject.Legajo
+                                    });
+                                }
+                            } catch (e) {
+                                // Ignorar items sin binding válido
+                            }
+                        }
+                    });
+                    
+                    // Primero, asegurarse de que NO hay selecciones por defecto
+                    aItemsValidos.forEach(function(oItemData) {
+                        if (oItemData.item.getSelected && oItemData.item.getSelected()) {
+                            oTable.setSelectedItem(oItemData.item, false);
+                        }
+                    });
+                    
+                    // Luego, seleccionar SOLO los items que corresponden a los Legajos guardados
+                    aItemsValidos.forEach(function(oItemData) {
+                        if (aSelecciones.indexOf(oItemData.legajo) !== -1) {
+                            oTable.setSelectedItem(oItemData.item, true);
+                        }
+                    });
                 };
                 
                 // Usar el evento updateFinished del binding
                 var oBinding = oTable ? oTable.getBinding("items") : null;
                 if (oBinding) {
+                    // Detener cualquier listener previo del mismo tipo
+                    oBinding.detachEvent("updateFinished", fnRestoreSelections);
                     oBinding.attachEventOnce("updateFinished", fnRestoreSelections);
                 } else {
-                    // Fallback: usar setTimeout
-                    setTimeout(fnRestoreSelections, 100);
+                    // Fallback: usar setTimeout con múltiples intentos
+                    var iAttempts = 0;
+                    var fnTryRestore = function() {
+                        iAttempts++;
+                        var aItems = oTable ? oTable.getItems() : [];
+                        if (aItems.length > 0) {
+                            fnRestoreSelections();
+                        } else if (iAttempts < 10) {
+                            setTimeout(fnTryRestore, 50);
+                        }
+                    };
+                    setTimeout(fnTryRestore, 100);
                 }
             },
             onSuccessLoadEvaluadores: function (response) {

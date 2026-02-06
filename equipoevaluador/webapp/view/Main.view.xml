@@ -23,194 +23,56 @@
 						</items>
 						<layoutData/>
 					</HBox>
-					<IconTabBar expandable="false" class="sapUiResponsiveContentPadding">
+					<f:Form editable="true" class="sapUiSmallMargin">
+						<f:layout>
+							<f:ResponsiveGridLayout labelSpanXL="8" labelSpanL="8" labelSpanM="8" labelSpanS="12" adjustLabelSpan="false" emptySpanXL="0" emptySpanL="0"
+								emptySpanM="0" emptySpanS="0" columnsXL="1" columnsL="1" columnsM="1" singleContainerFullSize="false"/>
+						</f:layout>
+						<f:formContainers>
+							<f:FormContainer>
+								<f:formElements>
+									<f:FormElement label="{i18n>Puser}">
+										<f:fields>
+											<Input showValueHelp="true" valueHelpOnly="true" value="{FiltrosModel>/Puser}" valueHelpRequest="onDialogEvaluador"/>
+										</f:fields>
+									</f:FormElement>
+									<f:FormElement label="{i18n>NombreApellido}">
+										<f:fields>
+											<Input value="{FiltrosModel>/Nombre}" enabled="false"/>
+										</f:fields>
+									</f:FormElement>
+								</f:formElements>
+							</f:FormContainer>
+						</f:formContainers>
+					</f:Form>
+					<VBox class="sapUiMediumMargin">
 						<items>
-							<!-- <IconTabFilter text="{i18n>Habilitacion}">
-								<VBox alignItems="Stretch" class="ContentHbox" direction="Column" fitContainer="false" width="auto" height="auto" justifyContent="Start"
-									renderType="Div" visible="true" displayInline="false">
-									<items>
-										<VBox class="colorGray">
-											<items>
-												<f:Form editable="true" class="formBold">
-													<f:layout>
-														<f:ResponsiveGridLayout labelSpanXL="3" labelSpanL="3" labelSpanM="3" labelSpanS="12" adjustLabelSpan="false" emptySpanXL="0" emptySpanL="0"
-															emptySpanM="0" emptySpanS="0" columnsXL="1" columnsL="1" columnsM="1" singleContainerFullSize="false"/>
-													</f:layout>
-													<f:formContainers>
-														<f:FormContainer>
-															<f:formElements>
-																<f:FormElement label="{i18n>Funcion}">
-																	<f:fields>
-																		<ComboBox selectedKey="{/funcion}" enabled="false" items="{Funciones>/Funciones}">
-																			<items>
-																				<core:Item key="{Funciones>Codigo}" text="{Funciones>Funcion}"/>
-																			</items>
-																		</ComboBox>
-																	</f:fields>
-																</f:FormElement>
-															</f:formElements>
-														</f:FormContainer>
-													</f:formContainers>
-												</f:Form>
-											</items>
+							<List id="list" mode="Delete" delete="handleDelete" enableBusyIndicator="true" headerText="Equipo Evaluador"
+								items="{path: 'EvaluadoresModel>/EvaluadoresModel'}" growing="true">
+								<CustomListItem>
+									<HBox class="sapUiSmallMargin" alignItems="Center">
+										<core:Icon size="50px" color="#0d63bf" src="sap-icon://customer" class="sapUiSmallMarginEnd"/>
+										<VBox class="sapUiSmallMarginBegin" width="100%">
+											<HBox >
+												<Label text=" {i18n>Puser}: "/>
+												<Text class="sapUiTinyMarginBegin" text="{EvaluadoresModel>Puser}"/>
+											</HBox>
+											<HBox >
+												<Label text="{i18n>NombreApellido}: "/>
+												<Text class="sapUiTinyMarginBegin" text="{EvaluadoresModel>Nombre}"/>
+											</HBox>
 										</VBox>
-										<HBox width="100%" class="marginTopTitle" justifyContent="SpaceBetween">
-											<items>
-												<Title text="{i18n>DatosPersonales}" class="TitleSection" titleStyle="H4" width="auto" textAlign="Left" visible="true"/>
-											</items>
-										</HBox>
-										<VBox class="colorGray">
-											<items>
-												<f:Form editable="true" class="formBold">
-													<f:layout>
-														<f:ResponsiveGridLayout labelSpanXL="3" labelSpanL="3" labelSpanM="3" labelSpanS="12" adjustLabelSpan="false" emptySpanXL="0" emptySpanL="0"
-															emptySpanM="0" emptySpanS="0" columnsXL="1" columnsL="1" columnsM="1" singleContainerFullSize="false"/>
-													</f:layout>
-													<f:formContainers>
-														<f:FormContainer>
-															<f:formElements>
-																<f:FormElement label="{i18n>persInt}">
-																	<f:fields>
-																		<Switch state="{ path: '/interno', formatter: '.formatSwitch'}" id="seletType" customTextOn="Si" enabled="false" customTextOff="No"
-																			change="onSelectedType"/>
-																		<core:InvisibleText text="{ path: '/Idhabilitacion', formatter: '.LoadIntervenciones'}"/>
-																	</f:fields>
-																</f:FormElement>
-																<f:FormElement>
-																	<f:label>
-																		<Label text="{i18n>Legajo}" id="labelLegajo" visible="false"/>
-																	</f:label>
-																	<f:fields>
-																		<Input type="Text" value="{/legajo}" enabled="false" id="inputLegajo" visible="false"/>
-																	</f:fields>
-																</f:FormElement>
-																<f:FormElement label="{i18n>Nombre}">
-																	<f:fields>
-																		<Input type="Text" value="{/nombre}" enabled="false">
-																			<layoutData>
-																				<l:GridData span="XL3 L3 M3 S12"/>
-																			</layoutData>
-																		</Input>
-																		<Label text="{i18n>Apellido}:" class="topLabel TextEnd">
-																			<layoutData>
-																				<l:GridData span="XL2 L2 M2 S12"/>
-																			</layoutData>
-																		</Label>
-																		<Input type="Text" value="{/apellido}" enabled="false">
-																			<layoutData>
-																				<l:GridData span="XL4 L4 M4 S12"/>
-																			</layoutData>
-																		</Input>
-																	</f:fields>
-																</f:FormElement>
-																<f:FormElement label="{i18n>docIdent}">
-																	<f:fields>
-																		<ComboBox selectedKey="{/DocumentType}" enabled="false">
-																			<items>
-																				<core:Item text="DNI" enabled="true" key="1"/>
-																				<core:Item text="Pasaporte" enabled="true" key="2"/>
-																				<core:Item text="Otro" enabled="true" key="3"/>
-																			</items>
-																			<layoutData>
-																				<l:GridData span="XL1 L1 M1 S4"/>
-																			</layoutData>
-																		</ComboBox>
-																		<Input type="Text" showValueHelp="false" value="{/documento}" enabled="false" visible="true" valueHelpOnly="false" maxLength="0">
-																			<layoutData>
-																				<l:GridData span="XL2 L2 M2 S8"/>
-																			</layoutData>
-																		</Input>
-																		<Label text="{i18n>textRegion}" class="topLabel TextEnd">
-																			<layoutData>
-																				<l:GridData span="XL2 L2 M2 S12"/>
-																			</layoutData>
-																		</Label>
-																		<ComboBox selectedKey="{/region}" enabled="false" items="{Regiones>/Regiones}">
-																			<items>
-																				<core:Item key="{Regiones>Codigo}" text="{Regiones>Region}"/>
-																			</items>
-																			<layoutData>
-																				<l:GridData span="XL4 L4 M4 S12"/>
-																			</layoutData>
-																		</ComboBox>
-																	</f:fields>
-																</f:FormElement>
-																<f:FormElement>
-																	<f:label>
-																		<Label text="{i18n>textEmpresa}" class="topLabel TextEnd" visible="{= !${/interno}}"/>
-																	</f:label>
-																	<f:fields>
-																		<Input value="{/Empresaext}" visible="{= !${/interno}}" enabled="false">
-																			<layoutData>
-																				<l:GridData span="XL4 L4 M4 S12"/>
-																			</layoutData>
-																		</Input>
-																	</f:fields>
-																</f:FormElement>
-															</f:formElements>
-														</f:FormContainer>
-													</f:formContainers>
-												</f:Form>
-											</items>
-											<layoutData/>
-										</VBox>
-									</items>
-								</VBox>
-							</IconTabFilter> -->
-							<IconTabFilter text="{i18n>Evaluadores}">
-								<f:Form editable="true" class="sapUiSmallMargin">
-									<f:layout>
-										<f:ResponsiveGridLayout labelSpanXL="8" labelSpanL="8" labelSpanM="8" labelSpanS="12" adjustLabelSpan="false" emptySpanXL="0" emptySpanL="0"
-											emptySpanM="0" emptySpanS="0" columnsXL="1" columnsL="1" columnsM="1" singleContainerFullSize="false"/>
-									</f:layout>
-									<f:formContainers>
-										<f:FormContainer>
-											<f:formElements>
-												<f:FormElement label="{i18n>Puser}">
-													<f:fields>
-														<Input showValueHelp="true" valueHelpOnly="true" value="{FiltrosModel>/Puser}" valueHelpRequest="onDialogEvaluador"/>
-													</f:fields>
-												</f:FormElement>
-												<f:FormElement label="{i18n>NombreApellido}">
-													<f:fields>
-														<Input value="{FiltrosModel>/Nombre}" enabled="false"/>
-													</f:fields>
-												</f:FormElement>
-											</f:formElements>
-										</f:FormContainer>
-									</f:formContainers>
-								</f:Form>
-								<VBox class="sapUiMediumMargin">
-									<items>
-										<List id="list" mode="Delete" delete="handleDelete" enableBusyIndicator="true" headerText="Equipo Evaluador"
-											items="{path: 'EvaluadoresModel>/EvaluadoresModel'}" growing="true">
-											<CustomListItem>
-												<HBox class="sapUiSmallMargin" alignItems="Center">
-													<core:Icon size="50px" color="#0d63bf" src="sap-icon://customer" class="sapUiSmallMarginEnd"/>
-													<VBox class="sapUiSmallMarginBegin" width="100%">
-														<HBox >
-															<Label text=" {i18n>Puser}: "/>
-															<Text class="sapUiTinyMarginBegin" text="{EvaluadoresModel>Puser}"/>
-														</HBox>
-														<HBox >
-															<Label text="{i18n>NombreApellido}: "/>
-															<Text class="sapUiTinyMarginBegin" text="{EvaluadoresModel>Nombre}"/>
-														</HBox>
-													</VBox>
-													<Button 
-														icon="{= ${EvaluadoresModel>Favorito} ? 'sap-icon://favorite' : 'sap-icon://unfavorite'}"
-														type="{= ${EvaluadoresModel>Favorito} ? 'Transparent' : 'Transparent'}"
-														press="onToggleFavorito"
-														tooltip="{= ${EvaluadoresModel>Favorito} ? 'Quitar de favoritos' : 'Marcar como favorito'}"
-														class="sapUiSmallMarginBegin"/>
-												</HBox>
-											</CustomListItem>
-										</List>
-									</items>
-								</VBox>
-							</IconTabFilter>
+										<Button 
+											icon="{= ${EvaluadoresModel>Favorito} ? 'sap-icon://favorite' : 'sap-icon://unfavorite'}"
+											type="{= ${EvaluadoresModel>Favorito} ? 'Transparent' : 'Transparent'}"
+											press="onToggleFavorito"
+											tooltip="{= ${EvaluadoresModel>Favorito} ? 'Quitar de favoritos' : 'Marcar como favorito'}"
+											class="sapUiSmallMarginBegin"/>
+									</HBox>
+								</CustomListItem>
+							</List>
 						</items>
-					</IconTabBar>
+					</VBox>
 				</content>
 				<footer>
 					<Bar>
