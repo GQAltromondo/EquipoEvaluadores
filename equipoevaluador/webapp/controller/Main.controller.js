@@ -315,7 +315,7 @@ sap.ui.define([
                     sNombres = [],
                     sPuser = [];
 
-                if (oTableId.getSelectedItems().length === 0) {
+                if (!oTableId || oTableId.getSelectedItems().length === 0) {
                     MessageBoxHelper.showAlert("Equipo Evaluador", "Debe seleccionar al menos un evaluador.");
                     return;
                 }
@@ -324,8 +324,24 @@ sap.ui.define([
                 var oEvaluadoresModel = this.getView().getModel("EvaluadoresModel");
                 var aEvaluadoresActuales = oEvaluadoresModel.getProperty("/EvaluadoresModel") || [];
                 
-                oTableId.getSelectedItems().forEach(obj => {
-                    let oObject = obj.getBindingContext("Evaluadores").getObject();
+                oTableId.getSelectedItems().forEach(function(obj) {
+                    var oContext = obj.getBindingContext("Evaluadores");
+                    if (!oContext) {
+                        // Si no hay binding context, intentar obtener el objeto directamente del item
+                        var oListItem = obj;
+                        var oData = oListItem.data ? oListItem.data() : null;
+                        if (!oData) {
+                            return; // Saltar este item si no se puede obtener el objeto
+                        }
+                        var oObject = oData;
+                    } else {
+                        var oObject = oContext.getObject();
+                    }
+                    
+                    if (!oObject || !oObject.Legajo) {
+                        return; // Saltar si no hay objeto válido o Legajo
+                    }
+                    
                     let sLegajo = oObject.Legajo;
                     let sNombreCompleto = (oObject.Nombre || "").trim() + " " + (oObject.Apellido || "").trim();
 
@@ -507,6 +523,22 @@ sap.ui.define([
             onSearchEvaluadores: function (oEvent) {
                 var sSearchValue = "";
                 var oSearchField = oEvent.getSource();
+                var oTable = this.byId("TableEvaluador");
+                
+                // Guardar las selecciones actuales antes de filtrar (usando Legajo como identificador único)
+                var aSeleccionesActuales = [];
+                if (oTable) {
+                    var aSelectedItems = oTable.getSelectedItems();
+                    aSelectedItems.forEach(function(oItem) {
+                        var oContext = oItem.getBindingContext("Evaluadores");
+                        if (oContext) {
+                            var oObject = oContext.getObject();
+                            if (oObject && oObject.Legajo) {
+                                aSeleccionesActuales.push(oObject.Legajo);
+                            }
+                        }
+                    });
+                }
                 
                 // Obtener el valor del search field
                 if (oEvent.getParameter) {
@@ -552,7 +584,57 @@ sap.ui.define([
                         });
                         oModel.setProperty("/Evaluadores", aFiltrados);
                     }
+                    // Guardar las selecciones en el modelo para restaurarlas después
+                    oModel.setProperty("/SeleccionesPendientes", aSeleccionesActuales);
+                    
                     oModel.updateBindings(true);
+                    
+                    // Restaurar las selecciones después de filtrar usando el identificador único (Legajo)
+                    if (oTable && aSeleccionesActuales.length > 0) {
+                        var that = this;
+                        // Usar el evento updateFinished del binding para restaurar las selecciones
+                        var oBinding = oTable.getBinding("items");
+                        if (oBinding) {
+                            var fnRestoreSelections = function() {
+                                oBinding.detachEvent("updateFinished", fnRestoreSelections);
+                                var aItems = oTable.getItems();
+                                var aSelecciones = oModel.getProperty("/SeleccionesPendientes") || [];
+                                
+                                aItems.forEach(function(oItem) {
+                                    var oContext = oItem.getBindingContext("Evaluadores");
+                                    if (oContext) {
+                                        var oObject = oContext.getObject();
+                                        if (oObject && aSelecciones.indexOf(oObject.Legajo) !== -1) {
+                                            oTable.setSelectedItem(oItem, true);
+                                        }
+                                    }
+                                });
+                                
+                                // Limpiar las selecciones pendientes
+                                oModel.setProperty("/SeleccionesPendientes", []);
+                            };
+                            oBinding.attachEventOnce("updateFinished", fnRestoreSelections);
+                        } else {
+                            // Fallback: usar setTimeout si no hay binding disponible
+                            setTimeout(function() {
+                                var aItems = oTable.getItems();
+                                var aSelecciones = oModel.getProperty("/SeleccionesPendientes") || [];
+                                
+                                aItems.forEach(function(oItem) {
+                                    var oContext = oItem.getBindingContext("Evaluadores");
+                                    if (oContext) {
+                                        var oObject = oContext.getObject();
+                                        if (oObject && aSelecciones.indexOf(oObject.Legajo) !== -1) {
+                                            oTable.setSelectedItem(oItem, true);
+                                        }
+                                    }
+                                });
+                                
+                                // Limpiar las selecciones pendientes
+                                oModel.setProperty("/SeleccionesPendientes", []);
+                            }, 200);
+                        }
+                    }
                 }
             },
             onSuccessLoadEvaluadores: function (response) {
