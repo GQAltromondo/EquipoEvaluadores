@@ -47,8 +47,7 @@
 					</f:Form>
 					<VBox class="sapUiMediumMargin">
 						<items>
-							<List id="list" mode="Delete" delete="handleDelete" enableBusyIndicator="true" 
-								headerText="{= 'Equipo Evaluador (' + ${EvaluadoresModel>/EvaluadoresModel}.length + ')' }"
+							<List id="list" mode="Delete" delete="handleDelete" enableBusyIndicator="true" headerText="Equipo Evaluador"
 								items="{path: 'EvaluadoresModel>/EvaluadoresModel'}" growing="true">
 								<CustomListItem>
 									<HBox class="sapUiSmallMargin" alignItems="Center">
