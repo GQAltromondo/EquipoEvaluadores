@@ -250,95 +250,84 @@ sap.ui.define([
                 });
             },
 
-            _getDialogEvaluadores: function() {
-                return this._oDialogEvaluadores ? this._oDialogEvaluadores.then(function(oDialog) {
-                    return oDialog;
-                }) : null;
-            },
-            _getTableEvaluador: function() {
-                var that = this;
-                if (this._oDialogEvaluadores) {
-                    return this._oDialogEvaluadores.then(function(oDialog) {
-                        return oDialog.byId("TableEvaluador");
-                    });
-                }
-                return Promise.resolve(null);
-            },
             selectedEvaluator: function (oEvent) {
                 var that = this;
-                this._getTableEvaluador().then(function(oTableId) {
-                    if (!oTableId) {
-                        return;
-                    }
-                let aEvaluadores = [],
-                    sNombres = [],
-                    sPuser = [];
-
-                if (!oTableId || oTableId.getSelectedItems().length === 0) {
-                    MessageBoxHelper.showAlert("Equipo Evaluador", "Debe seleccionar al menos un evaluador.");
+                if (!this._oDialogEvaluadores) {
                     return;
                 }
-
-                // Obtener el modelo de la tabla principal
-                var oEvaluadoresModel = this.getView().getModel("EvaluadoresModel");
-                var aEvaluadoresActuales = oEvaluadoresModel.getProperty("/EvaluadoresModel") || [];
                 
-                oTableId.getSelectedItems().forEach(function(obj) {
-                    var oContext = obj.getBindingContext("Evaluadores");
-                    if (!oContext) {
-                        // Si no hay binding context, intentar obtener el objeto directamente del item
-                        var oListItem = obj;
-                        var oData = oListItem.data ? oListItem.data() : null;
-                        if (!oData) {
-                            return; // Saltar este item si no se puede obtener el objeto
-                        }
-                        var oObject = oData;
-                    } else {
-                        var oObject = oContext.getObject();
-                    }
-                    
-                    if (!oObject || !oObject.Legajo) {
-                        return; // Saltar si no hay objeto válido o Legajo
-                    }
-                    
-                    let sLegajo = oObject.Legajo;
-                    let sNombreCompleto = (oObject.Nombre || "").trim() + " " + (oObject.Apellido || "").trim();
+                this._oDialogEvaluadores.then(function(oDialog) {
+                    var oTableId = oDialog.byId("TableEvaluador");
+                    let aEvaluadores = [],
+                        sNombres = [],
+                        sPuser = [];
 
-                    // Verificar si el evaluador ya existe en la tabla principal
-                    var bExiste = aEvaluadoresActuales.some(function(evalu) {
-                        return evalu.Puser === sLegajo;
+                    if (!oTableId || oTableId.getSelectedItems().length === 0) {
+                        MessageBoxHelper.showAlert("Equipo Evaluador", "Debe seleccionar al menos un evaluador.");
+                        return;
+                    }
+
+                    // Obtener el modelo de la tabla principal
+                    var oEvaluadoresModel = that.getView().getModel("EvaluadoresModel");
+                    var aEvaluadoresActuales = oEvaluadoresModel.getProperty("/EvaluadoresModel") || [];
+                    
+                    oTableId.getSelectedItems().forEach(function(obj) {
+                        var oContext = obj.getBindingContext("Evaluadores");
+                        if (!oContext) {
+                            // Si no hay binding context, intentar obtener el objeto directamente del item
+                            var oListItem = obj;
+                            var oData = oListItem.data ? oListItem.data() : null;
+                            if (!oData) {
+                                return; // Saltar este item si no se puede obtener el objeto
+                            }
+                            var oObject = oData;
+                        } else {
+                            var oObject = oContext.getObject();
+                        }
+                        
+                        if (!oObject || !oObject.Legajo) {
+                            return; // Saltar si no hay objeto válido o Legajo
+                        }
+                        
+                        let sLegajo = oObject.Legajo;
+                        let sNombreCompleto = (oObject.Nombre || "").trim() + " " + (oObject.Apellido || "").trim();
+
+                        // Verificar si el evaluador ya existe en la tabla principal
+                        var bExiste = aEvaluadoresActuales.some(function(evalu) {
+                            return evalu.Puser === sLegajo;
+                        });
+
+                        if (!bExiste) {
+                            let oDisplay = {
+                                Correo: oObject.Correo || "",
+                                Nombre: sNombreCompleto.trim(),
+                                Puser: sLegajo,
+                                Favorito: false
+                            };
+                            aEvaluadores.push(oDisplay);
+                            aEvaluadoresActuales.push(oDisplay);
+                            sNombres.push(sNombreCompleto.trim());
+                            sPuser.push(sLegajo);
+                        }
                     });
 
-                    if (!bExiste) {
-                        let oDisplay = {
-                            Correo: oObject.Correo || "",
-                            Nombre: sNombreCompleto.trim(),
-                            Puser: sLegajo,
-                            Favorito: false
-                        };
-                        aEvaluadores.push(oDisplay);
-                        aEvaluadoresActuales.push(oDisplay);
-                        sNombres.push(sNombreCompleto.trim());
-                        sPuser.push(sLegajo);
+                    // Ordenar los evaluadores poniendo favoritos primero
+                    var aEvaluadoresOrdenados = that._ordenarEvaluadoresPorFavoritos(aEvaluadoresActuales);
+                    
+                    // Actualizar el modelo de la tabla principal
+                    oEvaluadoresModel.setProperty("/EvaluadoresModel", aEvaluadoresOrdenados);
+                    oEvaluadoresModel.updateBindings(true);
+
+                    oDialog.close();
+
+                    // Limpiar los campos del formulario después de agregar los evaluadores
+                    var oFiltrosModel = that.getView().getModel("FiltrosModel");
+                    if (oFiltrosModel) {
+                        oFiltrosModel.setProperty("/Puser", "");
+                        oFiltrosModel.setProperty("/Nombre", "");
+                        oFiltrosModel.updateBindings(true);
                     }
                 });
-
-                // Ordenar los evaluadores poniendo favoritos primero
-                var aEvaluadoresOrdenados = this._ordenarEvaluadoresPorFavoritos(aEvaluadoresActuales);
-                
-                // Actualizar el modelo de la tabla principal
-                oEvaluadoresModel.setProperty("/EvaluadoresModel", aEvaluadoresOrdenados);
-                oEvaluadoresModel.updateBindings(true);
-
-                this._dialog.close();
-
-                // Limpiar los campos del formulario después de agregar los evaluadores
-                var oFiltrosModel = this.getView().getModel("FiltrosModel");
-                if (oFiltrosModel) {
-                    oFiltrosModel.setProperty("/Puser", "");
-                    oFiltrosModel.setProperty("/Nombre", "");
-                    oFiltrosModel.updateBindings(true);
-                }
             },
 
             onEvaluadorPress: function (oEvent) {
