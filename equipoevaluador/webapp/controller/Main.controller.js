@@ -271,33 +271,26 @@ sap.ui.define([
         },
 
         // ============================================================
-        // Selección en fragment (List): guardar por Legajo (no por índice)
+        // Selección en fragment (List): sincronizar desde la List para que el contador se actualice
         // ============================================================
         onSelectionChangeEvaluadores: function (oEvent) {
             if (this._bRestoringSelections) return;
 
+            var oList = oEvent.getSource();
             var oModel = this.getView().getModel("Evaluadores");
-            var oItem = oEvent.getParameter("listItem");
-            var bSelected = oEvent.getParameter("selected");
-            if (!oModel || !oItem) return;
+            if (!oModel || !oList) return;
 
-            var oCtx = oItem.getBindingContext("Evaluadores");
-            if (!oCtx) return;
+            // Obtener todos los contextos seleccionados (respeta filtro y multi-selección)
+            var aContexts = oList.getSelectedContexts(true) || [];
+            var aLegajos = [];
+            aContexts.forEach(function (oCtx) {
+                if (!oCtx) return;
+                var oObj = oCtx.getObject();
+                if (oObj && oObj.Legajo) aLegajos.push(oObj.Legajo);
+            });
 
-            var oObj = oCtx.getObject();
-            if (!oObj || !oObj.Legajo) return;
-
-            var sLegajo = oObj.Legajo;
-            var aSel = oModel.getProperty("/SeleccionesGuardadas") || [];
-
-            if (bSelected) {
-                if (aSel.indexOf(sLegajo) === -1) aSel.push(sLegajo);
-            } else {
-                var i = aSel.indexOf(sLegajo);
-                if (i !== -1) aSel.splice(i, 1);
-            }
-
-            oModel.setProperty("/SeleccionesGuardadas", aSel);
+            // Asignar siempre un array nuevo para que el modelo dispare cambio y el binding del contador se actualice
+            oModel.setProperty("/SeleccionesGuardadas", aLegajos.slice());
         },
 
         _restoreSelectionsToList: function () {
