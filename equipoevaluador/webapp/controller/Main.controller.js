@@ -20,6 +20,7 @@ sap.ui.define([
                 var oModel = new JSONModel({ 
                     Evaluadores: [], 
                     EvaluadoresCompletos: [],
+                    SeleccionesGuardadas: [],
                     FilterValue: "",
                     Busy: false 
                 });
@@ -205,11 +206,17 @@ sap.ui.define([
                     oModel = new JSONModel({ 
                         Evaluadores: [], 
                         EvaluadoresCompletos: [], // Copia completa para filtrado
+                        SeleccionesGuardadas: [], // Selecciones acumuladas durante la sesión
+                        FilterValue: "",
                         Busy: true 
                     });
                     this.getView().setModel(oModel, "Evaluadores");
                 } else {
                     oModel.setProperty("/Busy", true);
+                    // Inicializar selecciones guardadas si no existe
+                    if (!oModel.getProperty("/SeleccionesGuardadas")) {
+                        oModel.setProperty("/SeleccionesGuardadas", []);
+                    }
                 }
                 
                 // Cargar los datos del PersonalInternoService cuando se abre el Dialog (solo una vez)
@@ -220,6 +227,7 @@ sap.ui.define([
                 } else {
                     // Si ya hay datos, restaurar la lista completa y quitar el filtro
                     oModel.setProperty("/Evaluadores", aEvaluadoresCompletos);
+                    oModel.setProperty("/FilterValue", "");
                     oModel.setProperty("/Busy", false);
                 }
                 
@@ -395,6 +403,13 @@ sap.ui.define([
                 this._dialog.close();
             },
             afterCloseDialog: function () {
+                // Limpiar las selecciones guardadas al cerrar el dialog
+                var oModel = this.getView().getModel("Evaluadores");
+                if (oModel) {
+                    oModel.setProperty("/SeleccionesGuardadas", []);
+                    oModel.setProperty("/FilterValue", "");
+                }
+                
                 this._dialog.destroy();
                 this._dialog = null;
             },
@@ -524,9 +539,16 @@ sap.ui.define([
                 var sSearchValue = "";
                 var oSearchField = oEvent.getSource();
                 var oTable = this.byId("TableEvaluador");
+                var oModel = this.getView().getModel("Evaluadores");
                 
-                // Guardar las selecciones actuales antes de filtrar (usando Legajo como identificador único)
+                if (!oModel) {
+                    return;
+                }
+                
+                // Guardar las selecciones actuales ANTES de filtrar (usando Legajo como identificador único)
+                var aSeleccionesGuardadas = oModel.getProperty("/SeleccionesGuardadas") || [];
                 var aSeleccionesActuales = [];
+                
                 if (oTable) {
                     var aSelectedItems = oTable.getSelectedItems();
                     aSelectedItems.forEach(function(oItem) {
@@ -534,15 +556,25 @@ sap.ui.define([
                         if (oContext) {
                             var oObject = oContext.getObject();
                             if (oObject && oObject.Legajo) {
-                                aSeleccionesActuales.push(oObject.Legajo);
+                                var sLegajo = oObject.Legajo;
+                                if (aSeleccionesActuales.indexOf(sLegajo) === -1) {
+                                    aSeleccionesActuales.push(sLegajo);
+                                }
                             }
+                        }
+                    });
+                    
+                    // Combinar con las selecciones guardadas anteriormente
+                    aSeleccionesActuales.forEach(function(sLegajo) {
+                        if (aSeleccionesGuardadas.indexOf(sLegajo) === -1) {
+                            aSeleccionesGuardadas.push(sLegajo);
                         }
                     });
                 }
                 
                 // Obtener el valor del search field
                 if (oEvent.getParameter) {
-                    // Para liveChange, usar newValue
+                    // Para liveChange, usar newValue (incluye cuando se limpia con la cruz)
                     sSearchValue = oEvent.getParameter("newValue");
                     // Para search, usar query
                     if (sSearchValue === undefined) {
@@ -560,81 +592,63 @@ sap.ui.define([
                 // Asegurar que sea string
                 sSearchValue = (sSearchValue || "").toString().trim();
                 
+                // Guardar todas las selecciones acumuladas
+                oModel.setProperty("/SeleccionesGuardadas", aSeleccionesGuardadas);
+                
                 // Filtrar localmente sobre los datos ya cargados
-                var oModel = this.getView().getModel("Evaluadores");
-                if (oModel) {
-                    // Actualizar el valor del filtro en el modelo
+                var aEvaluadoresCompletos = oModel.getProperty("/EvaluadoresCompletos") || [];
+                
+                if (!sSearchValue || sSearchValue === "") {
+                    // Si el filtro está vacío (incluye cuando se hace clic en la cruz), mostrar todos
+                    oModel.setProperty("/Evaluadores", aEvaluadoresCompletos);
+                    oModel.setProperty("/FilterValue", "");
+                } else {
+                    // Filtrar localmente
+                    var sFilterLower = sSearchValue.toLowerCase();
+                    var aFiltrados = aEvaluadoresCompletos.filter(function(evaluador) {
+                        var sNombre = (evaluador.Nombre || "").toLowerCase();
+                        var sApellido = (evaluador.Apellido || "").toLowerCase();
+                        var sLegajo = (evaluador.Legajo || "").toLowerCase();
+                        return sNombre.indexOf(sFilterLower) !== -1 || 
+                               sApellido.indexOf(sFilterLower) !== -1 || 
+                               sLegajo.indexOf(sFilterLower) !== -1;
+                    });
+                    oModel.setProperty("/Evaluadores", aFiltrados);
                     oModel.setProperty("/FilterValue", sSearchValue);
-                    
-                    // Si el filtro está vacío, mostrar todos los evaluadores
-                    if (!sSearchValue || sSearchValue === "") {
-                        var aEvaluadoresCompletos = oModel.getProperty("/EvaluadoresCompletos") || [];
-                        oModel.setProperty("/Evaluadores", aEvaluadoresCompletos);
-                    } else {
-                        // Filtrar localmente
-                        var aEvaluadoresCompletos = oModel.getProperty("/EvaluadoresCompletos") || [];
-                        var sFilterLower = sSearchValue.toLowerCase();
-                        var aFiltrados = aEvaluadoresCompletos.filter(function(evaluador) {
-                            var sNombre = (evaluador.Nombre || "").toLowerCase();
-                            var sApellido = (evaluador.Apellido || "").toLowerCase();
-                            var sLegajo = (evaluador.Legajo || "").toLowerCase();
-                            return sNombre.indexOf(sFilterLower) !== -1 || 
-                                   sApellido.indexOf(sFilterLower) !== -1 || 
-                                   sLegajo.indexOf(sFilterLower) !== -1;
+                }
+                
+                oModel.updateBindings(true);
+                
+                // Restaurar las selecciones después de que el binding se actualice
+                var that = this;
+                var fnRestoreSelections = function() {
+                    if (oTable) {
+                        var aItems = oTable.getItems();
+                        var aSelecciones = oModel.getProperty("/SeleccionesGuardadas") || [];
+                        
+                        // Limpiar todas las selecciones primero
+                        oTable.removeSelections();
+                        
+                        // Restaurar las selecciones basadas en Legajo
+                        aItems.forEach(function(oItem) {
+                            var oContext = oItem.getBindingContext("Evaluadores");
+                            if (oContext) {
+                                var oObject = oContext.getObject();
+                                if (oObject && aSelecciones.indexOf(oObject.Legajo) !== -1) {
+                                    oTable.setSelectedItem(oItem, true);
+                                }
+                            }
                         });
-                        oModel.setProperty("/Evaluadores", aFiltrados);
                     }
-                    // Guardar las selecciones en el modelo para restaurarlas después
-                    oModel.setProperty("/SeleccionesPendientes", aSeleccionesActuales);
-                    
-                    oModel.updateBindings(true);
-                    
-                    // Restaurar las selecciones después de filtrar usando el identificador único (Legajo)
-                    if (oTable && aSeleccionesActuales.length > 0) {
-                        var that = this;
-                        // Usar el evento updateFinished del binding para restaurar las selecciones
-                        var oBinding = oTable.getBinding("items");
-                        if (oBinding) {
-                            var fnRestoreSelections = function() {
-                                oBinding.detachEvent("updateFinished", fnRestoreSelections);
-                                var aItems = oTable.getItems();
-                                var aSelecciones = oModel.getProperty("/SeleccionesPendientes") || [];
-                                
-                                aItems.forEach(function(oItem) {
-                                    var oContext = oItem.getBindingContext("Evaluadores");
-                                    if (oContext) {
-                                        var oObject = oContext.getObject();
-                                        if (oObject && aSelecciones.indexOf(oObject.Legajo) !== -1) {
-                                            oTable.setSelectedItem(oItem, true);
-                                        }
-                                    }
-                                });
-                                
-                                // Limpiar las selecciones pendientes
-                                oModel.setProperty("/SeleccionesPendientes", []);
-                            };
-                            oBinding.attachEventOnce("updateFinished", fnRestoreSelections);
-                        } else {
-                            // Fallback: usar setTimeout si no hay binding disponible
-                            setTimeout(function() {
-                                var aItems = oTable.getItems();
-                                var aSelecciones = oModel.getProperty("/SeleccionesPendientes") || [];
-                                
-                                aItems.forEach(function(oItem) {
-                                    var oContext = oItem.getBindingContext("Evaluadores");
-                                    if (oContext) {
-                                        var oObject = oContext.getObject();
-                                        if (oObject && aSelecciones.indexOf(oObject.Legajo) !== -1) {
-                                            oTable.setSelectedItem(oItem, true);
-                                        }
-                                    }
-                                });
-                                
-                                // Limpiar las selecciones pendientes
-                                oModel.setProperty("/SeleccionesPendientes", []);
-                            }, 200);
-                        }
-                    }
+                };
+                
+                // Usar el evento updateFinished del binding
+                var oBinding = oTable ? oTable.getBinding("items") : null;
+                if (oBinding) {
+                    oBinding.attachEventOnce("updateFinished", fnRestoreSelections);
+                } else {
+                    // Fallback: usar setTimeout
+                    setTimeout(fnRestoreSelections, 100);
                 }
             },
             onSuccessLoadEvaluadores: function (response) {
@@ -646,6 +660,7 @@ sap.ui.define([
                     oModel = new JSONModel({ 
                         Evaluadores: [], 
                         EvaluadoresCompletos: [],
+                        SeleccionesGuardadas: [],
                         FilterValue: "",
                         Busy: false 
                     });
@@ -656,6 +671,10 @@ sap.ui.define([
                 oModel.setProperty("/EvaluadoresCompletos", aEvaluadores);
                 oModel.setProperty("/Evaluadores", aEvaluadores);
                 oModel.setProperty("/FilterValue", "");
+                // Inicializar selecciones guardadas si no existe
+                if (!oModel.getProperty("/SeleccionesGuardadas")) {
+                    oModel.setProperty("/SeleccionesGuardadas", []);
+                }
                 oModel.setProperty("/Busy", false);
                 
                 // Si el Dialog está abierto, actualizar su modelo también
