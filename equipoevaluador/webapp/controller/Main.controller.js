@@ -393,7 +393,7 @@ sap.ui.define([
         },
 
         onExit: function () {
-            // destruir dialog si existe
+            
             if (this._pEvaluadoresDialog) {
                 this._pEvaluadoresDialog.then(function (oDialog) {
                     if (oDialog && oDialog.destroy) oDialog.destroy();
@@ -401,9 +401,6 @@ sap.ui.define([
                 this._pEvaluadoresDialog = null;
             }
         }
-
-        // Si necesitás regiones/empresa, agregalas acá cuando las uses:
-        // LoadRegionesModel / onSuccessRegion / onErrorRegion / loadSociety, etc.
 
     });
 });

@@ -55,7 +55,7 @@
 										<VBox class="sapUiSmallMarginBegin" width="100%">
 											<HBox >
 												<Label text=" {i18n>Puser}: "/>
-												<Text class="sapUiTinyMarginBegin" text="{EvaluadoresModel>Puser}"/>
+												<Text class="sapUiTinyMarginBegin" text="{EvaluadoresModel>Legajo}"/>
 											</HBox>
 											<HBox >
 												<Label text="{i18n>NombreApellido}: "/>
