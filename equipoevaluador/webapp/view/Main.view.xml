@@ -9,7 +9,7 @@
 							<HBox alignItems="Start" width="65%" class="ContentTitle" justifyContent="Start">
 								<items>
 									<Title text="{i18n>textLicHab}" titleStyle="H3" class="titleBlue" textAlign="Begin" visible="true"/>
-									<Title text="{i18n>SeleccionEvaluador}" titleStyle="H4" class="subTitleBlue"/>
+									<Title text="{= ${i18n>SeleccionEvaluador} + (${Empresa>/selectedSociety} === '100' ? ' - Transener' : (${Empresa>/selectedSociety} === '300' ? ' - Transba' : '')) }" titleStyle="H4" class="subTitleBlue"/>
 								</items>
 								<layoutData/>
 							</HBox>
