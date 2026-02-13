@@ -447,22 +447,34 @@ sap.ui.define([
                     Fecha: e.Fecha || oNow
                 };
 
-                var sPath = sEntitySet + "(Empresa='" + oPayload.Empresa + "',Legajo='" + oPayload.Legajo + "')";
-
                 return new Promise(function (resolve, reject) {
-                    // Intentar UPDATE primero (si existe)
-                    oODataModel.update(sPath, oPayload, {
-                        success: function (oData) { resolve(oData); },
-                        error: function (oErr) {
-                            // Si falla UPDATE (probablemente no existe), intentar CREATE
-                            if (oErr.statusCode === "400" || oErr.statusCode === 400) {
-                                oODataModel.create(sEntitySet, oPayload, {
-                                    success: function (oData) { resolve(oData); },
-                                    error: function (oErr2) { reject(oErr2); }
-                                });
-                            } else {
-                                reject(oErr);
-                            }
+                    // Crear la clave usando createKey
+                    var sKey = oODataModel.createKey("/HabEvaluadorSet", {
+                        Empresa: oPayload.Empresa,
+                        Legajo: oPayload.Legajo
+                    });
+
+                    // Verificar si existe leyendo primero
+                    oODataModel.read(sKey, {
+                        success: function () {
+                            // Existe → actualizar
+                            oODataModel.update(sKey, oPayload, {
+                                success: function (oData) { resolve(oData); },
+                                error: function (oErr) {
+                                    console.error("Error en UPDATE:", oErr);
+                                    reject(oErr);
+                                }
+                            });
+                        },
+                        error: function () {
+                            // No existe → crear
+                            oODataModel.create("/HabEvaluadorSet", oPayload, {
+                                success: function (oData) { resolve(oData); },
+                                error: function (oErr) {
+                                    console.error("Error en CREATE:", oErr);
+                                    reject(oErr);
+                                }
+                            });
                         }
                     });
                 });
