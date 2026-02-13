@@ -421,7 +421,21 @@ sap.ui.define([
 
 
             var sEmpresa = (oView.getModel("Empresa") && oView.getModel("Empresa").getProperty("/selectedSociety")) || "100";
-            var oNow = new Date();
+            
+            // Formatear fecha para OData v2 (formato ISO o Edm.DateTime)
+            var formatDateForOData = function(oDate) {
+                if (!oDate) {
+                    oDate = new Date();
+                }
+                if (typeof oDate === "string") {
+                    return oDate; // Ya está en formato string
+                }
+                if (oDate instanceof Date) {
+                    // Formato ISO 8601 para OData
+                    return oDate.toISOString();
+                }
+                return new Date().toISOString();
+            };
 
             // Normaliza distintos formatos a boolean real
             var toBool = function (v) {
@@ -435,7 +449,7 @@ sap.ui.define([
 
             oView.setBusy(true);
 
-            var aFavoritos = aEvaluadores.filter(function (e) { return e.Seleccionado=== true; });
+            var aFavoritos = aEvaluadores.filter(function (e) { return e.Seleccionado === true; });
 
             var aRequests = aEvaluadores.map(function (e) {
                 var oPayload = {
@@ -444,23 +458,31 @@ sap.ui.define([
                     Nombre: String(e.Nombre || ""),
                     Email: String(e.Correo || ""),
                     Seleccionado: toBool(e.Seleccionado || e.Favorito),
-                    Fecha: e.Fecha || oNow
+                    Fecha: formatDateForOData(e.Fecha)
                 };
 
                 var sPath = sEntitySet + "(Empresa='" + oPayload.Empresa + "',Legajo='" + oPayload.Legajo + "')";
 
                 return new Promise(function (resolve, reject) {
-                    // Intentar UPDATE primero (si existe)
-                    oODataModel.update(sPath, oPayload, {
-                        success: function (oData) { resolve(oData); },
+                    // Primero intentar CREATE (más común para nuevos registros)
+                    oODataModel.create(sEntitySet, oPayload, {
+                        success: function (oData) { 
+                            resolve(oData); 
+                        },
                         error: function (oErr) {
-                            // Si falla UPDATE (probablemente no existe), intentar CREATE
-                            if (oErr.statusCode === "404" || oErr.statusCode === 404) {
-                                oODataModel.create(sEntitySet, oPayload, {
+                            // Si falla CREATE porque ya existe (error 409 Conflict o 400 con mensaje de duplicado), intentar UPDATE
+                            if (oErr.statusCode === "409" || oErr.statusCode === 409 || 
+                                (oErr.statusCode === "400" && oErr.message && oErr.message.indexOf("exists") !== -1)) {
+                                oODataModel.update(sPath, oPayload, {
                                     success: function (oData) { resolve(oData); },
-                                    error: function (oErr2) { reject(oErr2); }
+                                    error: function (oErr2) { 
+                                        console.error("Error en UPDATE después de CREATE fallido:", oErr2);
+                                        reject(oErr2); 
+                                    }
                                 });
                             } else {
+                                // Si es otro error, rechazar
+                                console.error("Error en CREATE:", oErr);
                                 reject(oErr);
                             }
                         }
@@ -473,11 +495,18 @@ sap.ui.define([
                     // Guardado exitoso - sin mensaje
                 })
                 .catch(function (oErr) {
-                    console.error(oErr);
-                    MessageBoxHelper.showAlert(
-                        "Equipo Evaluador",
-                        "Error al guardar evaluadores en backend. Revisá la consola / Gateway."
-                    );
+                    console.error("Error al guardar evaluadores:", oErr);
+                    var sMensaje = "Error al guardar evaluadores en backend.";
+                    if (oErr.statusCode) {
+                        sMensaje += " Código: " + oErr.statusCode;
+                    }
+                    if (oErr.message) {
+                        sMensaje += " Mensaje: " + oErr.message;
+                    }
+                    if (oErr.responseText) {
+                        console.error("Response:", oErr.responseText);
+                    }
+                    MessageBoxHelper.showAlert("Equipo Evaluador", sMensaje);
                 })
                 .finally(function () {
                     oView.setBusy(false);
