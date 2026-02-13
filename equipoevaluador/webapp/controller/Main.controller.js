@@ -2,6 +2,7 @@ sap.ui.define([
     "sap/ui/core/mvc/Controller",
     "sap/ui/model/json/JSONModel",
     "sap/ui/core/Fragment",
+    "sap/m/MessageToast",
 
     "transener/equipoevaluador/utils/MessageBoxHelper",
     "transener/equipoevaluador/utils/ModelHelper",
@@ -15,6 +16,7 @@ sap.ui.define([
     Controller,
     JSONModel,
     Fragment,
+    MessageToast,
     MessageBoxHelper,
     ModelHelper,
     SocietyHelper,
@@ -512,7 +514,8 @@ sap.ui.define([
 
             Promise.all(aRequests)
                 .then(function () {
-                    // Guardado exitoso - sin mensaje
+                    // Guardado exitoso - mostrar MessageToast
+                    MessageToast.show("Guardado correcto");
                 })
                 .catch(function (oErr) {
                     console.error(oErr);
