@@ -36,11 +36,7 @@
 											<Input showValueHelp="true" valueHelpOnly="true" value="{FiltrosModel>/Puser}" valueHelpRequest="onDialogEvaluador"/>
 										</f:fields>
 									</f:FormElement>
-									<f:FormElement label="{i18n>NombreApellido}">
-										<f:fields>
-											<Input value="{FiltrosModel>/Nombre}" enabled="false"/>
-										</f:fields>
-									</f:FormElement>
+							
 								</f:formElements>
 							</f:FormContainer>
 						</f:formContainers>
