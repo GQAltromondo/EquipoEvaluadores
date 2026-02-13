@@ -48,7 +48,7 @@
 					<VBox class="sapUiMediumMargin">
 						<items>
 							<List id="list" mode="Delete" delete="onPressDeleteEvaluador" enableBusyIndicator="true" headerText="Equipo Evaluador"
-								items="{path: 'EvaluadoresModel>/EvaluadoresModel'}" growing="true">
+								items="{path: 'EvaluadoresModel>/Evaluadores'}" growing="true">
 								<CustomListItem>
 									<HBox class="sapUiSmallMargin" alignItems="Center">
 										<core:Icon size="50px" color="#0d63bf" src="sap-icon://customer" class="sapUiSmallMarginEnd"/>
@@ -63,10 +63,10 @@
 											</HBox>
 										</VBox>
 										<Button 
-											icon="{= ${EvaluadoresModel>Favorito} ? 'sap-icon://favorite' : 'sap-icon://unfavorite'}"
-											type="{= ${EvaluadoresModel>Favorito} ? 'Transparent' : 'Transparent'}"
+											icon="{= ${EvaluadoresModel>Seleccionado} ? 'sap-icon://favorite' : 'sap-icon://unfavorite'}"
+											type="{= ${EvaluadoresModel>Seleccionado} ? 'Transparent' : 'Transparent'}"
 											press="onToggleFavorito"
-											tooltip="{= ${EvaluadoresModel>Favorito} ? 'Quitar de favoritos' : 'Marcar como favorito'}"
+											tooltip="{= ${EvaluadoresModel>Seleccionado} ? 'Quitar de favoritos' : 'Marcar como favorito'}"
 											class="sapUiSmallMarginBegin"/>
 									</HBox>
 								</CustomListItem>

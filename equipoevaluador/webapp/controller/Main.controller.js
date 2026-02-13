@@ -123,8 +123,8 @@ sap.ui.define([
 
             var aOrdenados = aEvaluadores.slice();
             aOrdenados.sort(function (a, b) {
-                var aFav = a.Favorito === true ? 1 : 0;
-                var bFav = b.Favorito === true ? 1 : 0;
+                var aFav = a.Seleccionado === true ? 1 : 0;
+                var bFav = b.Seleccionado === true ? 1 : 0;
                 if (aFav === bFav) return 0;
                 return bFav - aFav;
             });
@@ -138,21 +138,21 @@ sap.ui.define([
             if (!oContext) return;
 
             var oEvaluador = oContext.getObject();
-            if (oEvaluador.Favorito === undefined) {
-                oEvaluador.Favorito = false;
+            if (oEvaluador.Seleccionado=== undefined) {
+                oEvaluador.Seleccionado= false;
             }
 
             var oModel = this.getView().getModel("EvaluadoresModel");
             var aEvaluadores = oModel.getProperty("/EvaluadoresModel") || [];
 
-            var iFavoritosCount = aEvaluadores.filter(function (e) { return e.Favorito === true; }).length;
+            var iFavoritosCount = aEvaluadores.filter(function (e) { return e.Seleccionado=== true; }).length;
 
-            if (!oEvaluador.Favorito && iFavoritosCount >= 3) {
+            if (!oEvaluador.Seleccionado&& iFavoritosCount >= 3) {
                 MessageBoxHelper.showAlert("Favoritos", "Solo puede tener hasta 3 evaluadores favoritos. Desmarque uno antes de agregar otro.");
                 return;
             }
 
-            oEvaluador.Favorito = !oEvaluador.Favorito;
+            oEvaluador.Seleccionado= !oEvaluador.Favorito;
 
             oModel.setProperty("/EvaluadoresModel", this._ordenarEvaluadoresPorFavoritos(aEvaluadores));
             oModel.updateBindings(true);
@@ -173,7 +173,7 @@ sap.ui.define([
 
             aEvaluadores.splice(i, 1);
             aEvaluadores.forEach(function (e) {
-                if (e.Favorito === undefined) e.Favorito = false;
+                if (e.Seleccionado=== undefined) e.Seleccionado= false;
             });
 
             oModel.setProperty("/EvaluadoresModel", this._ordenarEvaluadoresPorFavoritos(aEvaluadores));
@@ -408,7 +408,7 @@ sap.ui.define([
 
             oView.setBusy(true);
 
-            var aFavoritos = aEvaluadores.filter(function (e) { return e.Favorito === true; });
+            var aFavoritos = aEvaluadores.filter(function (e) { return e.Seleccionado=== true; });
 
             var aRequests = aEvaluadores.map(function (e) {
                 var oPayload = {
@@ -469,7 +469,7 @@ sap.ui.define([
                 oView.getModel("Empresa").getProperty("/selectedSociety")) || "100";
 
             var oJsonModel = new sap.ui.model.json.JSONModel({
-                HabEvaluadores: []
+                Evaluadores: []
             });
 
             oView.setModel(oJsonModel, "EvaluadoresModel");
@@ -481,10 +481,9 @@ sap.ui.define([
                 ] : [],
                 success: function (oData) {
 
-                    // Si viene como oData.results (OData V2)
-                    var aData = oData.results || [];
+                   var aData = oData.results || [];
 
-                    oJsonModel.setProperty("/HabEvaluadores", aData);
+                    oJsonModel.setProperty("/Evaluadores", aData);
                 },
                 error: function (oError) {
                     console.error(oError);
