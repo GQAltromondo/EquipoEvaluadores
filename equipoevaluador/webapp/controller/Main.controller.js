@@ -435,7 +435,7 @@ sap.ui.define([
 
             oView.setBusy(true);
 
-            var aFavoritos = aEvaluadores.filter(function (e) { return e.Seleccionado === true; });
+            var aFavoritos = aEvaluadores.filter(function (e) { return e.Seleccionado=== true; });
 
             var aRequests = aEvaluadores.map(function (e) {
                 var oPayload = {
@@ -450,25 +450,17 @@ sap.ui.define([
                 var sPath = sEntitySet + "(Empresa='" + oPayload.Empresa + "',Legajo='" + oPayload.Legajo + "')";
 
                 return new Promise(function (resolve, reject) {
-                    // Primero intentar CREATE (más común para nuevos registros)
-                    oODataModel.create(sEntitySet, oPayload, {
-                        success: function (oData) { 
-                            resolve(oData); 
-                        },
+                    // Intentar UPDATE primero (si existe)
+                    oODataModel.update(sPath, oPayload, {
+                        success: function (oData) { resolve(oData); },
                         error: function (oErr) {
-                            // Si falla CREATE porque ya existe (error 409 Conflict o 400 con mensaje de duplicado), intentar UPDATE
-                            if (oErr.statusCode === "409" || oErr.statusCode === 409 || 
-                                (oErr.statusCode === "400" && oErr.message && oErr.message.indexOf("exists") !== -1)) {
-                                oODataModel.update(sPath, oPayload, {
+                            // Si falla UPDATE (probablemente no existe), intentar CREATE
+                            if (oErr.statusCode === "400" || oErr.statusCode === 400) {
+                                oODataModel.create(sEntitySet, oPayload, {
                                     success: function (oData) { resolve(oData); },
-                                    error: function (oErr2) { 
-                                        console.error("Error en UPDATE después de CREATE fallido:", oErr2);
-                                        reject(oErr2); 
-                                    }
+                                    error: function (oErr2) { reject(oErr2); }
                                 });
                             } else {
-                                // Si es otro error, rechazar
-                                console.error("Error en CREATE:", oErr);
                                 reject(oErr);
                             }
                         }
@@ -481,18 +473,11 @@ sap.ui.define([
                     // Guardado exitoso - sin mensaje
                 })
                 .catch(function (oErr) {
-                    console.error("Error al guardar evaluadores:", oErr);
-                    var sMensaje = "Error al guardar evaluadores en backend.";
-                    if (oErr.statusCode) {
-                        sMensaje += " Código: " + oErr.statusCode;
-                    }
-                    if (oErr.message) {
-                        sMensaje += " Mensaje: " + oErr.message;
-                    }
-                    if (oErr.responseText) {
-                        console.error("Response:", oErr.responseText);
-                    }
-                    MessageBoxHelper.showAlert("Equipo Evaluador", sMensaje);
+                    console.error(oErr);
+                    MessageBoxHelper.showAlert(
+                        "Equipo Evaluador",
+                        "Error al guardar evaluadores en backend. Revisá la consola / Gateway."
+                    );
                 })
                 .finally(function () {
                     oView.setBusy(false);
