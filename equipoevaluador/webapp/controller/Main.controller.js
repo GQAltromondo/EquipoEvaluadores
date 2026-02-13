@@ -154,50 +154,11 @@ sap.ui.define([
                 return;
             }
 
-            // Actualizar en modelo local primero
+            // Solo actualizar en modelo local - el backend se actualizará cuando se presione "Guardar"
             oEvaluador.Seleccionado = bNuevoValor;
+            oEvaluador.Favorito = bNuevoValor; // Mantener ambos campos sincronizados
             oModel.setProperty("/EvaluadoresModel", this._ordenarEvaluadoresPorFavoritos(aEvaluadores));
             oModel.updateBindings(true);
-
-            // Actualizar en backend
-            this._updateEvaluadorSeleccionadoInBackend(oEvaluador, bNuevoValor);
-        },
-
-        _updateEvaluadorSeleccionadoInBackend: function (oEvaluador, bSeleccionado) {
-            var oView = this.getView();
-            var oODataModel = oDataService.getModel();
-            var sEmpresa = (oView.getModel("Empresa") && oView.getModel("Empresa").getProperty("/selectedSociety")) || "100";
-            
-            // Construir el path para UPDATE: /HabEvaluadorSet(Empresa='...',Legajo='...')
-            var sPath = "/HabEvaluadorSet(Empresa='" + sEmpresa + "',Legajo='" + (oEvaluador.Puser || oEvaluador.Legajo || "") + "')";
-            
-            // Payload para UPDATE
-            var oPayload = {
-                Empresa: sEmpresa,
-                Legajo: String(oEvaluador.Puser || oEvaluador.Legajo || ""),
-                Nombre: String(oEvaluador.Nombre || ""),
-                Email: String(oEvaluador.Correo || ""),
-                Seleccionado: bSeleccionado,
-                Fecha: oEvaluador.Fecha || new Date()
-            };
-            
-            var that = this;
-            oODataModel.update(sPath, oPayload, {
-                success: function() {
-                    // Éxito silencioso - ya se actualizó en el modelo local
-                    console.log("Evaluador actualizado en backend correctamente.");
-                },
-                error: function(oError) {
-                    console.error("Error al actualizar evaluador en backend:", oError);
-                    // Revertir cambio en modelo local si falla
-                    oEvaluador.Seleccionado = !bSeleccionado;
-                    var oModel = oView.getModel("EvaluadoresModel");
-                    var aEvaluadores = oModel.getProperty("/EvaluadoresModel") || [];
-                    oModel.setProperty("/EvaluadoresModel", that._ordenarEvaluadoresPorFavoritos(aEvaluadores));
-                    oModel.updateBindings(true);
-                    MessageBoxHelper.showAlert("Equipo Evaluador", "Error al actualizar el evaluador en el backend. El cambio se revirtió.");
-                }
-            });
         },
 
         onPressDeleteEvaluador: function (oEvent) {
