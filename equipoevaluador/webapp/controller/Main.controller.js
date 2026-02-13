@@ -421,21 +421,7 @@ sap.ui.define([
 
 
             var sEmpresa = (oView.getModel("Empresa") && oView.getModel("Empresa").getProperty("/selectedSociety")) || "100";
-            
-            // Formatear fecha para OData v2 (formato ISO o Edm.DateTime)
-            var formatDateForOData = function(oDate) {
-                if (!oDate) {
-                    oDate = new Date();
-                }
-                if (typeof oDate === "string") {
-                    return oDate; // Ya está en formato string
-                }
-                if (oDate instanceof Date) {
-                    // Formato ISO 8601 para OData
-                    return oDate.toISOString();
-                }
-                return new Date().toISOString();
-            };
+            var oNow = new Date();
 
             // Normaliza distintos formatos a boolean real
             var toBool = function (v) {
@@ -458,7 +444,7 @@ sap.ui.define([
                     Nombre: String(e.Nombre || ""),
                     Email: String(e.Correo || ""),
                     Seleccionado: toBool(e.Seleccionado || e.Favorito),
-                    Fecha: formatDateForOData(e.Fecha)
+                    Fecha: e.Fecha || oNow
                 };
 
                 var sPath = sEntitySet + "(Empresa='" + oPayload.Empresa + "',Legajo='" + oPayload.Legajo + "')";
