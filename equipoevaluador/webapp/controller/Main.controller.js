@@ -210,12 +210,6 @@ sap.ui.define([
                 }, this)
             });
         },
-
-        // ============================================================
-        // Fragment (Dialog Evaluadores)
-        // Archivo: webapp/fragments/EvaluadoresDialog.fragment.xml
-        // name: transener.equipoevaluador.fragments.EvaluadoresDialog
-        // ============================================================
         _getEvaluadoresDialog: function () {
             if (!this._pEvaluadoresDialog) {
                 this._pEvaluadoresDialog = Fragment.load({
@@ -476,14 +470,7 @@ sap.ui.define([
 
             Promise.all(aRequests)
                 .then(function () {
-                    var iSeleccionados = aEvaluadores.filter(function (e) { return toBool(e.Seleccionado); }).length;
-
-                    var sMensaje = "Se guardaron " + aEvaluadores.length + " evaluador(es)";
-                    sMensaje += " (" + iSeleccionados + " seleccionado(s))";
-                    if (aFavoritos.length > 0) sMensaje += " - " + aFavoritos.length + " favorito(s)";
-                    sMensaje += ".";
-
-                    MessageBoxHelper.showAlert("Equipo Evaluador", sMensaje);
+                    // Guardado exitoso - sin mensaje
                 })
                 .catch(function (oErr) {
                     console.error(oErr);
