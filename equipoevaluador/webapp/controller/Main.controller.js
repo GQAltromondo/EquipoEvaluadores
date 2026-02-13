@@ -5,6 +5,7 @@ sap.ui.define([
 
     "transener/equipoevaluador/utils/MessageBoxHelper",
     "transener/equipoevaluador/utils/ModelHelper",
+    "transener/equipoevaluador/utils/SocietyHelper",
     "transener/equipoevaluador/services/RegionService",
     "transener/equipoevaluador/services/EvaluadoresService",
     "transener/equipoevaluador/services/PersonalInternoService",
@@ -16,6 +17,7 @@ sap.ui.define([
     Fragment,
     MessageBoxHelper,
     ModelHelper,
+    SocietyHelper,
     RegionService,
     EvaluadoresService,
     PersonalInternoService,
@@ -50,7 +52,35 @@ sap.ui.define([
             if (!this.getView().getModel("FiltrosModel")) {
                 this.getView().setModel(new JSONModel({}), "FiltrosModel");
             }
-            this.loadHabEvaluadores()
+
+            // Cargar empresa/society
+            this.loadSociety();
+        },
+
+        // ============================================================
+        // Carga de Empresa/Society usando SocietyHelper
+        // ============================================================
+        loadSociety: function () {
+            var that = this;
+            var oModelOperaciones = this.getOwnerComponent().getModel("operaciones");
+            
+            SocietyHelper.loadSociety(
+                this,
+                oModelOperaciones,
+                function (sEmpresa) {
+                    // Callback cuando se carga/selecciona empresa
+                    that.society = sEmpresa;
+                    that.loadHabEvaluadores();
+                    // Aquí puedes agregar otras funciones que dependan de la empresa
+                    // that.loadNemos(sEmpresa);
+                    // that.loadTipoEquipos(sEmpresa);
+                },
+                [
+                    { Code: "", Name: "Elija Uno" },
+                    { Code: "100", Name: "TRANSENER S.A." },
+                    { Code: "300", Name: "TRANSBA S.A." }
+                ]
+            );
         },
 
         // ============================================================
@@ -182,7 +212,7 @@ sap.ui.define([
         _deleteEvaluadorFromBackend: function (oEvaluador) {
             var oView = this.getView();
             var oODataModel = oDataService.getModel();
-            var sEmpresa = (oView.getModel("Empresa") && oView.getModel("Empresa").getProperty("/selectedSociety")) || "100";
+            var sEmpresa = SocietyHelper.getCurrentSociety(oView, "100");
             
             // Construir el path para DELETE: /HabEvaluadorSet(Empresa='...',Legajo='...')
             var sPath = "/HabEvaluadorSet(Empresa='" + sEmpresa + "',Legajo='" + (oEvaluador.Puser || oEvaluador.Legajo || "") + "')";
@@ -420,7 +450,7 @@ sap.ui.define([
 
 
 
-            var sEmpresa = (oView.getModel("Empresa") && oView.getModel("Empresa").getProperty("/selectedSociety")) || "100";
+            var sEmpresa = SocietyHelper.getCurrentSociety(oView, "100");
             var oNow = new Date();
 
             // Normaliza distintos formatos a boolean real
@@ -510,8 +540,7 @@ sap.ui.define([
         loadHabEvaluadores: function () {
             var oView = this.getView();
             var oODataModel = oDataService.getModel();
-            var sEmpresa = (oView.getModel("Empresa") &&
-                oView.getModel("Empresa").getProperty("/selectedSociety")) || "100";
+            var sEmpresa = SocietyHelper.getCurrentSociety(oView, "100");
 
             var oEvaluadoresModel = oView.getModel("EvaluadoresModel");
             if (!oEvaluadoresModel) {
