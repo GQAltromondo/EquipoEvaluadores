@@ -7,7 +7,9 @@ sap.ui.define([
     "transener/equipoevaluador/utils/ModelHelper",
     "transener/equipoevaluador/services/RegionService",
     "transener/equipoevaluador/services/EvaluadoresService",
-    "transener/equipoevaluador/services/PersonalInternoService"
+    "transener/equipoevaluador/services/PersonalInternoService",
+    "transener/equipoevaluador/services/oDataService"
+
 ], function (
     Controller,
     JSONModel,
@@ -16,7 +18,8 @@ sap.ui.define([
     ModelHelper,
     RegionService,
     EvaluadoresService,
-    PersonalInternoService
+    PersonalInternoService,
+    oDataService
 ) {
     "use strict";
 
@@ -47,6 +50,7 @@ sap.ui.define([
             if (!this.getView().getModel("FiltrosModel")) {
                 this.getView().setModel(new JSONModel({}), "FiltrosModel");
             }
+            this.loadHabEvaluadores()
         },
 
         // ============================================================
@@ -372,35 +376,124 @@ sap.ui.define([
             }
         },
 
-        // ============================================================
-        // Helpers opcionales
-        // ============================================================
         onSaveEvaluador: function () {
-            var oEvaluadoresModel = this.getView().getModel("EvaluadoresModel");
+            var oView = this.getView();
+            var oODataModel = oDataService.getModel();
+            var sEntitySet = "/HabEvaluadorSet";
+            var oEvaluadoresModel = oView.getModel("EvaluadoresModel");
             var aEvaluadores = oEvaluadoresModel.getProperty("/EvaluadoresModel") || [];
 
-            if (aEvaluadores.length === 0) {
-                MessageBoxHelper.showAlert("Equipo Evaluador", "No hay evaluadores seleccionados. Por favor, seleccione al menos un evaluador desde el diálogo.");
+            if (!aEvaluadores.length) {
+                MessageBoxHelper.showAlert(
+                    "Equipo Evaluador",
+                    "No hay evaluadores para guardar."
+                );
                 return;
             }
 
-            var aFavoritos = aEvaluadores.filter(function (e) { return e.Favorito === true; });
-            var sMensaje = "Se guardaron " + aEvaluadores.length + " evaluador(es)";
-            if (aFavoritos.length > 0) sMensaje += " (" + aFavoritos.length + " favorito(s))";
-            sMensaje += ".";
 
-            MessageBoxHelper.showAlert("Equipo Evaluador", sMensaje);
+
+            var sEmpresa = (oView.getModel("Empresa") && oView.getModel("Empresa").getProperty("/selectedSociety")) || "100";
+            var oNow = new Date();
+
+            // Normaliza distintos formatos a boolean real
+            var toBool = function (v) {
+                if (v === true || v === false) return v;
+                if (v === "X" || v === "x") return true;
+                if (v === 1 || v === "1") return true;
+                if (v === 0 || v === "0") return false;
+                if (typeof v === "string") return v.trim().toLowerCase() === "true";
+                return !!v;
+            };
+
+            oView.setBusy(true);
+
+            var aFavoritos = aEvaluadores.filter(function (e) { return e.Favorito === true; });
+
+            var aRequests = aEvaluadores.map(function (e) {
+                var oPayload = {
+                    Empresa: e.Empresa || sEmpresa,
+                    Legajo: String(e.Puser || ""),
+                    Nombre: String(e.Nombre || ""),
+                    Email: String(e.Correo || ""),
+                    Seleccionado: toBool(e.Favorito), // <-- por fila
+                    Fecha: oNow
+                };
+
+                return new Promise(function (resolve, reject) {
+                    oODataModel.create(sEntitySet, oPayload, {
+                        success: function (oData) { resolve(oData); },
+                        error: function (oErr) { reject(oErr); }
+                    });
+                });
+            });
+
+            Promise.all(aRequests)
+                .then(function () {
+                    var iSeleccionados = aEvaluadores.filter(function (e) { return toBool(e.Seleccionado); }).length;
+
+                    var sMensaje = "Se guardaron " + aEvaluadores.length + " evaluador(es)";
+                    sMensaje += " (" + iSeleccionados + " seleccionado(s))";
+                    if (aFavoritos.length > 0) sMensaje += " - " + aFavoritos.length + " favorito(s)";
+                    sMensaje += ".";
+
+                    MessageBoxHelper.showAlert("Equipo Evaluador", sMensaje);
+                })
+                .catch(function (oErr) {
+                    console.error(oErr);
+                    MessageBoxHelper.showAlert(
+                        "Equipo Evaluador",
+                        "Error al guardar evaluadores en backend. Revisá la consola / Gateway."
+                    );
+                })
+                .finally(function () {
+                    oView.setBusy(false);
+                });
         },
 
+
+
         onExit: function () {
-            
+
             if (this._pEvaluadoresDialog) {
                 this._pEvaluadoresDialog.then(function (oDialog) {
                     if (oDialog && oDialog.destroy) oDialog.destroy();
                 });
                 this._pEvaluadoresDialog = null;
             }
-        }
+        },
+        loadHabEvaluadores: function () {
+            var oView = this.getView();
+            var oODataModel = oDataService.getModel();
+            var sEmpresa = (oView.getModel("Empresa") &&
+                oView.getModel("Empresa").getProperty("/selectedSociety")) || "100";
+
+            var oJsonModel = new sap.ui.model.json.JSONModel({
+                HabEvaluadores: []
+            });
+
+            oView.setModel(oJsonModel, "EvaluadoresModel");
+
+
+            oODataModel.read("/HabEvaluadorSet", {
+                filters: sEmpresa ? [
+                    new sap.ui.model.Filter("Empresa", "EQ", sEmpresa)
+                ] : [],
+                success: function (oData) {
+
+                    // Si viene como oData.results (OData V2)
+                    var aData = oData.results || [];
+
+                    oJsonModel.setProperty("/HabEvaluadores", aData);
+                },
+                error: function (oError) {
+                    console.error(oError);
+                    sap.m.MessageToast.show("Error al cargar evaluadores");
+                },
+
+            });
+        },
+
 
     });
 });
