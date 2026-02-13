@@ -138,24 +138,66 @@ sap.ui.define([
             if (!oContext) return;
 
             var oEvaluador = oContext.getObject();
-            if (oEvaluador.Seleccionado=== undefined) {
-                oEvaluador.Seleccionado= false;
+            if (oEvaluador.Seleccionado === undefined) {
+                oEvaluador.Seleccionado = false;
             }
 
             var oModel = this.getView().getModel("EvaluadoresModel");
             var aEvaluadores = oModel.getProperty("/EvaluadoresModel") || [];
 
-            var iFavoritosCount = aEvaluadores.filter(function (e) { return e.Seleccionado=== true; }).length;
+            var iFavoritosCount = aEvaluadores.filter(function (e) { return e.Seleccionado === true; }).length;
 
-            if (!oEvaluador.Seleccionado&& iFavoritosCount >= 3) {
+            // Validar límite de favoritos antes de cambiar
+            var bNuevoValor = !oEvaluador.Seleccionado;
+            if (bNuevoValor && iFavoritosCount >= 3) {
                 MessageBoxHelper.showAlert("Favoritos", "Solo puede tener hasta 3 evaluadores favoritos. Desmarque uno antes de agregar otro.");
                 return;
             }
 
-            oEvaluador.Seleccionado= !oEvaluador.Favorito;
-
+            // Actualizar en modelo local primero
+            oEvaluador.Seleccionado = bNuevoValor;
             oModel.setProperty("/EvaluadoresModel", this._ordenarEvaluadoresPorFavoritos(aEvaluadores));
             oModel.updateBindings(true);
+
+            // Actualizar en backend
+            this._updateEvaluadorSeleccionadoInBackend(oEvaluador, bNuevoValor);
+        },
+
+        _updateEvaluadorSeleccionadoInBackend: function (oEvaluador, bSeleccionado) {
+            var oView = this.getView();
+            var oODataModel = oDataService.getModel();
+            var sEmpresa = (oView.getModel("Empresa") && oView.getModel("Empresa").getProperty("/selectedSociety")) || "100";
+            
+            // Construir el path para UPDATE: /HabEvaluadorSet(Empresa='...',Legajo='...')
+            var sPath = "/HabEvaluadorSet(Empresa='" + sEmpresa + "',Legajo='" + (oEvaluador.Puser || oEvaluador.Legajo || "") + "')";
+            
+            // Payload para UPDATE
+            var oPayload = {
+                Empresa: sEmpresa,
+                Legajo: String(oEvaluador.Puser || oEvaluador.Legajo || ""),
+                Nombre: String(oEvaluador.Nombre || ""),
+                Email: String(oEvaluador.Correo || ""),
+                Seleccionado: bSeleccionado,
+                Fecha: oEvaluador.Fecha || new Date()
+            };
+            
+            var that = this;
+            oODataModel.update(sPath, oPayload, {
+                success: function() {
+                    // Éxito silencioso - ya se actualizó en el modelo local
+                    console.log("Evaluador actualizado en backend correctamente.");
+                },
+                error: function(oError) {
+                    console.error("Error al actualizar evaluador en backend:", oError);
+                    // Revertir cambio en modelo local si falla
+                    oEvaluador.Seleccionado = !bSeleccionado;
+                    var oModel = oView.getModel("EvaluadoresModel");
+                    var aEvaluadores = oModel.getProperty("/EvaluadoresModel") || [];
+                    oModel.setProperty("/EvaluadoresModel", that._ordenarEvaluadoresPorFavoritos(aEvaluadores));
+                    oModel.updateBindings(true);
+                    MessageBoxHelper.showAlert("Equipo Evaluador", "Error al actualizar el evaluador en el backend. El cambio se revirtió.");
+                }
+            });
         },
 
         onPressDeleteEvaluador: function (oEvent) {
@@ -164,20 +206,48 @@ sap.ui.define([
             if (!oCtx) return;
 
             var oObj = oCtx.getObject();
-            var oModel = this.getView().getModel("EvaluadoresModel");
-            var aEvaluadores = (oModel.getProperty("/EvaluadoresModel") || []).slice();
+            var that = this;
+            
+            // Confirmar eliminación
+            MessageBoxHelper.showConfirm(
+                "Eliminar Evaluador",
+                "¿Desea eliminar a " + (oObj.Nombre || oObj.Puser) + "?",
+                function() {
+                    that._deleteEvaluadorFromBackend(oObj);
+                }
+            );
+        },
 
-            // Buscar por Puser (Legajo) para no depender del formato del path
-            var i = aEvaluadores.findIndex(function (e) { return e.Puser === oObj.Puser; });
-            if (i === -1) return;
-
-            aEvaluadores.splice(i, 1);
-            aEvaluadores.forEach(function (e) {
-                if (e.Seleccionado=== undefined) e.Seleccionado= false;
+        _deleteEvaluadorFromBackend: function (oEvaluador) {
+            var oView = this.getView();
+            var oODataModel = oDataService.getModel();
+            var sEmpresa = (oView.getModel("Empresa") && oView.getModel("Empresa").getProperty("/selectedSociety")) || "100";
+            
+            // Construir el path para DELETE: /HabEvaluadorSet(Empresa='...',Legajo='...')
+            var sPath = "/HabEvaluadorSet(Empresa='" + sEmpresa + "',Legajo='" + (oEvaluador.Puser || oEvaluador.Legajo || "") + "')";
+            
+            oView.setBusy(true);
+            
+            oODataModel.remove(sPath, {
+                success: jQuery.proxy(function() {
+                    // Eliminar del modelo local después de éxito en backend
+                    var oModel = this.getView().getModel("EvaluadoresModel");
+                    var aEvaluadores = (oModel.getProperty("/EvaluadoresModel") || []).slice();
+                    var i = aEvaluadores.findIndex(function (e) { return e.Puser === oEvaluador.Puser; });
+                    if (i !== -1) {
+                        aEvaluadores.splice(i, 1);
+                        oModel.setProperty("/EvaluadoresModel", this._ordenarEvaluadoresPorFavoritos(aEvaluadores));
+                        oModel.updateBindings(true);
+                    }
+                    MessageBoxHelper.showAlert("Equipo Evaluador", "Evaluador eliminado correctamente.");
+                    oView.setBusy(false);
+                }, this),
+                error: jQuery.proxy(function(oError) {
+                    console.error("Error al eliminar evaluador:", oError);
+                    MessageBoxHelper.showAlert("Equipo Evaluador", "Error al eliminar el evaluador en el backend. Revisá la consola.");
+                    oView.setBusy(false);
+                }, this)
             });
-
-            oModel.setProperty("/EvaluadoresModel", this._ordenarEvaluadoresPorFavoritos(aEvaluadores));
-            oModel.updateBindings(true);
         },
 
         // ============================================================
@@ -354,6 +424,8 @@ sap.ui.define([
                     Correo: oObj.Correo || "",
                     Nombre: sNombreCompleto,
                     Puser: legajo,
+                    Legajo: legajo,
+                    Seleccionado: false,
                     Favorito: false
                 });
             });
@@ -413,17 +485,30 @@ sap.ui.define([
             var aRequests = aEvaluadores.map(function (e) {
                 var oPayload = {
                     Empresa: e.Empresa || sEmpresa,
-                    Legajo: String(e.Puser || ""),
+                    Legajo: String(e.Puser || e.Legajo || ""),
                     Nombre: String(e.Nombre || ""),
                     Email: String(e.Correo || ""),
-                    Seleccionado: toBool(e.Favorito), // <-- por fila
-                    Fecha: oNow
+                    Seleccionado: toBool(e.Seleccionado || e.Favorito),
+                    Fecha: e.Fecha || oNow
                 };
 
+                var sPath = sEntitySet + "(Empresa='" + oPayload.Empresa + "',Legajo='" + oPayload.Legajo + "')";
+
                 return new Promise(function (resolve, reject) {
-                    oODataModel.create(sEntitySet, oPayload, {
+                    // Intentar UPDATE primero (si existe)
+                    oODataModel.update(sPath, oPayload, {
                         success: function (oData) { resolve(oData); },
-                        error: function (oErr) { reject(oErr); }
+                        error: function (oErr) {
+                            // Si falla UPDATE (probablemente no existe), intentar CREATE
+                            if (oErr.statusCode === "404" || oErr.statusCode === 404) {
+                                oODataModel.create(sEntitySet, oPayload, {
+                                    success: function (oData) { resolve(oData); },
+                                    error: function (oErr2) { reject(oErr2); }
+                                });
+                            } else {
+                                reject(oErr);
+                            }
+                        }
                     });
                 });
             });
@@ -468,28 +553,42 @@ sap.ui.define([
             var sEmpresa = (oView.getModel("Empresa") &&
                 oView.getModel("Empresa").getProperty("/selectedSociety")) || "100";
 
-            var oJsonModel = new sap.ui.model.json.JSONModel({
-                Evaluadores: []
-            });
-
-            oView.setModel(oJsonModel, "EvaluadoresModel");
-
+            var oEvaluadoresModel = oView.getModel("EvaluadoresModel");
+            if (!oEvaluadoresModel) {
+                oEvaluadoresModel = new JSONModel({
+                    EvaluadoresModel: []
+                });
+                oView.setModel(oEvaluadoresModel, "EvaluadoresModel");
+            }
 
             oODataModel.read("/HabEvaluadorSet", {
                 filters: sEmpresa ? [
                     new sap.ui.model.Filter("Empresa", "EQ", sEmpresa)
                 ] : [],
-                success: function (oData) {
-
-                   var aData = oData.results || [];
-
-                    oJsonModel.setProperty("/Evaluadores", aData);
-                },
+                success: jQuery.proxy(function (oData) {
+                    var aData = oData.results || [];
+                    
+                    // Mapear desde HabEvaluadorSet al formato de EvaluadoresModel
+                    var aMapeados = aData.map(function (oItem) {
+                        return {
+                            Empresa: oItem.Empresa || sEmpresa,
+                            Puser: oItem.Legajo || "",
+                            Legajo: oItem.Legajo || "",
+                            Nombre: oItem.Nombre || "",
+                            Correo: oItem.Email || oItem.Correo || "",
+                            Seleccionado: oItem.Seleccionado === true || oItem.Seleccionado === "X" || oItem.Seleccionado === "x",
+                            Favorito: oItem.Seleccionado === true || oItem.Seleccionado === "X" || oItem.Seleccionado === "x",
+                            Fecha: oItem.Fecha
+                        };
+                    });
+                    
+                    oEvaluadoresModel.setProperty("/EvaluadoresModel", this._ordenarEvaluadoresPorFavoritos(aMapeados));
+                    oEvaluadoresModel.updateBindings(true);
+                }, this),
                 error: function (oError) {
-                    console.error(oError);
-                    sap.m.MessageToast.show("Error al cargar evaluadores");
-                },
-
+                    console.error("Error al cargar evaluadores:", oError);
+                    MessageBoxHelper.showAlert("Error", "No se pudieron cargar los evaluadores existentes.");
+                }
             });
         },
 

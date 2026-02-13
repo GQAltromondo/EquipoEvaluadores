@@ -48,7 +48,7 @@
 					<VBox class="sapUiMediumMargin">
 						<items>
 							<List id="list" mode="Delete" delete="onPressDeleteEvaluador" enableBusyIndicator="true" headerText="Equipo Evaluador"
-								items="{path: 'EvaluadoresModel>/Evaluadores'}" growing="true">
+								items="{path: 'EvaluadoresModel>/EvaluadoresModel'}" growing="true">
 								<CustomListItem>
 									<HBox class="sapUiSmallMargin" alignItems="Center">
 										<core:Icon size="50px" color="#0d63bf" src="sap-icon://customer" class="sapUiSmallMarginEnd"/>
