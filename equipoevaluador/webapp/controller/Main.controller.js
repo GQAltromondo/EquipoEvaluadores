@@ -62,7 +62,7 @@ sap.ui.define([
         // ============================================================
         loadSociety: function () {
             var that = this;
-            var oModelOperaciones = this.getOwnerComponent().getModel("operaciones");
+            var oModelOperaciones = oDataService.getModelOp();
             
             SocietyHelper.loadSociety(
                 this,
