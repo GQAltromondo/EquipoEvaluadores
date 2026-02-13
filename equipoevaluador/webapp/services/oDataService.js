@@ -4,8 +4,8 @@ sap.ui.define([], function () {
 
 		getModel: function () {
 			if (!this._model) {
-				                var appModel =sap.ui.getCore().getModel("appCurrentInfo")
-				var mBaseUrl = appModel.getProperty("/appUrl")
+				var appModel = sap.ui.getCore().getModel("appCurrentInfo");
+				var mBaseUrl = appModel.getProperty("/appUrl");
 				var url = mBaseUrl + "/destinations/SAP_Gateway/sap/opu/odata/sap/Z_SCP_HABILITACIONES_SRV/";
 				this._model = new sap.ui.model.odata.v2.ODataModel(url, {
 					useBatch: false
@@ -15,16 +15,15 @@ sap.ui.define([], function () {
 		},
 
         getModelOp: function () {
-			if (!this._model) {
-			
-				 var appModel =sap.ui.getCore().getModel("appCurrentInfo")
-				var mBaseUrl = appModel.getProperty("/appUrl")
+			if (!this._modelOp) {
+				var appModel = sap.ui.getCore().getModel("appCurrentInfo");
+				var mBaseUrl = appModel.getProperty("/appUrl");
 				var url = mBaseUrl + "/destinations/SAP_Gateway/sap/opu/odata/sap/Z_SCP_OPERACIONES_SRV/";
-				this._model = new sap.ui.model.odata.v2.ODataModel(url, {
+				this._modelOp = new sap.ui.model.odata.v2.ODataModel(url, {
 					useBatch: false
 				});
 			}
-			return this._model;
+			return this._modelOp;
 		}
 	};
 });
