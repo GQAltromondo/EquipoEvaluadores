@@ -30,10 +30,9 @@ sap.ui.define([
          * @param {object} oController - Controlador
          * @param {object} oModelOperaciones - Modelo OData de operaciones (opcional, si no existe muestra diálogo)
          * @param {function} fnOnEmpresaLoaded - Callback cuando se carga/selecciona empresa (recibe código de empresa)
-         * @param {Array} aEmpresas - Array de empresas para el diálogo (opcional)
          * @returns {Promise<string>} Promise que se resuelve con el código de empresa
          */
-        loadSociety: async function (oController, oModelOperaciones, fnOnEmpresaLoaded, aEmpresas) {
+        loadSociety: async function (oController, oModelOperaciones, fnOnEmpresaLoaded) {
             var that = this;
             var oBusyDialog = this.crearDialogoBusy();
             this.abrirDialogoBusy(oBusyDialog);
@@ -59,7 +58,7 @@ sap.ui.define([
                         
                         // Si empresa es 999, mostrar diálogo de selección
                         if (sEmpresa == 999) {
-                            sEmpresa = await this._showSocietyDialog(oController, aEmpresas);
+                            sEmpresa = await this._showSocietyDialog(oController);
                         } else {
                             // Guardar en modelo y sessionStorage
                             this._setEmpresaInModel(oController, sEmpresa);
@@ -67,7 +66,7 @@ sap.ui.define([
                     } catch (oError) {
                         // Si falla la carga, mostrar diálogo
                         console.warn("No se pudo cargar empresa desde backend, mostrando diálogo:", oError);
-                        sEmpresa = await this._showSocietyDialog(oController, aEmpresas);
+                        sEmpresa = await this._showSocietyDialog(oController,);
                     }
                 }
 
@@ -91,10 +90,10 @@ sap.ui.define([
          * Muestra diálogo de selección de empresa (privado)
          * @private
          */
-        _showSocietyDialog: function (oController, aEmpresas) {
+        _showSocietyDialog: function (oController) {
             var that = this;
             return new Promise(function (resolve) {
-                var aDefaultEmpresas = aEmpresas || [
+                var aDefaultEmpresas =  [
                     { Code: "", Name: "Elija Uno" },
                     { Code: "100", Name: "TRANSENER S.A." },
                     { Code: "300", Name: "TRANSBA S.A." }
