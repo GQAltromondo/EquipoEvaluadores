@@ -474,7 +474,7 @@ sap.ui.define([
             if (iFavoritosCount !== 3) {
                 MessageBoxHelper.showAlert(
                     "Equipo Evaluador",
-                    "Debe tener exactamente 3 favoritos para guardar. Actualmente tiene " + iFavoritosCount + "."
+                    "Debe seleccionar 3 evaluadores titulares. Falta " + (3 - iFavoritosCount) + "."
                 );
                 return;
             }
