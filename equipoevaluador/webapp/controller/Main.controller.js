@@ -450,7 +450,16 @@ sap.ui.define([
                 return;
             }
 
-
+            var iFavoritosCount = aEvaluadores.filter(function (e) {
+                return e.Seleccionado === true || e.Seleccionado === "X" || e.Seleccionado === 1;
+            }).length;
+            if (iFavoritosCount !== 3) {
+                MessageBoxHelper.showAlert(
+                    "Equipo Evaluador",
+                    "Debe tener exactamente 3 favoritos para guardar. Actualmente tiene " + iFavoritosCount + "."
+                );
+                return;
+            }
 
             var sEmpresa = SocietyHelper.getCurrentSociety(oView, "100");
             var oNow = new Date();
