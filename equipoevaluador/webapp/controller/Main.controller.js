@@ -57,6 +57,24 @@ sap.ui.define([
 
             // Cargar empresa/society
             this.loadSociety();
+            this.getImageUrl()
+        },
+        getImageUrl: function () {
+            const oView = this.getView()
+            var oModelImage = ModelHelper.getModel("ImageModel", oView);
+            var sEmpresa = SocietyHelper.getCurrentSociety(oView, "100");
+            var mLogos = {
+                "100": "images/transener.png",
+                "300": "images/transba.png"
+            };
+
+            var sPath = mLogos[sEmpresa] || "images/transener.png";
+
+            var sEmpresaLogo = this.getOwnerComponent()
+                .getManifestObject()
+                .resolveUri(sPath);
+
+            oModelImage.setProperty("/Image", sEmpresaLogo);
         },
 
         // ============================================================
@@ -65,7 +83,7 @@ sap.ui.define([
         loadSociety: function () {
             var that = this;
             var oModelOperaciones = oDataService.getModelOp();
-            
+
             SocietyHelper.loadSociety(
                 this,
                 oModelOperaciones,
@@ -200,12 +218,12 @@ sap.ui.define([
 
             var oObj = oCtx.getObject();
             var that = this;
-            
+
             // Confirmar eliminación
             MessageBoxHelper.showConfirm(
                 "Eliminar Evaluador",
                 "¿Desea eliminar a " + (oObj.Nombre || oObj.Puser) + "?",
-                function() {
+                function () {
                     that._deleteEvaluadorFromBackend(oObj);
                 }
             );
@@ -215,14 +233,14 @@ sap.ui.define([
             var oView = this.getView();
             var oODataModel = oDataService.getModel();
             var sEmpresa = SocietyHelper.getCurrentSociety(oView, "100");
-            
+
             // Construir el path para DELETE: /HabEvaluadorSet(Empresa='...',Legajo='...')
             var sPath = "/HabEvaluadorSet(Empresa='" + sEmpresa + "',Legajo='" + (oEvaluador.Puser || oEvaluador.Legajo || "") + "')";
-            
+
             oView.setBusy(true);
-            
+
             oODataModel.remove(sPath, {
-                success: jQuery.proxy(function() {
+                success: jQuery.proxy(function () {
                     // Eliminar del modelo local después de éxito en backend
                     var oModel = this.getView().getModel("EvaluadoresModel");
                     var aEvaluadores = (oModel.getProperty("/EvaluadoresModel") || []).slice();
@@ -235,7 +253,7 @@ sap.ui.define([
                     MessageBoxHelper.showAlert("Equipo Evaluador", "Evaluador eliminado correctamente.");
                     oView.setBusy(false);
                 }, this),
-                error: jQuery.proxy(function(oError) {
+                error: jQuery.proxy(function (oError) {
                     console.error("Error al eliminar evaluador:", oError);
                     MessageBoxHelper.showAlert("Equipo Evaluador", "Error al eliminar el evaluador en el backend. Revisá la consola.");
                     oView.setBusy(false);
@@ -476,7 +494,7 @@ sap.ui.define([
 
             oView.setBusy(true);
 
-            var aFavoritos = aEvaluadores.filter(function (e) { return e.Seleccionado=== true; });
+            var aFavoritos = aEvaluadores.filter(function (e) { return e.Seleccionado === true; });
 
             var aRequests = aEvaluadores.map(function (e) {
                 var oPayload = {
@@ -568,7 +586,7 @@ sap.ui.define([
                 ] : [],
                 success: jQuery.proxy(function (oData) {
                     var aData = oData.results || [];
-                    
+
                     // Mapear desde HabEvaluadorSet al formato de EvaluadoresModel
                     var aMapeados = aData.map(function (oItem) {
                         return {
@@ -582,7 +600,7 @@ sap.ui.define([
                             Fecha: oItem.Fecha
                         };
                     });
-                    
+
                     oEvaluadoresModel.setProperty("/EvaluadoresModel", this._ordenarEvaluadoresPorFavoritos(aMapeados));
                     oEvaluadoresModel.updateBindings(true);
                 }, this),

@@ -9,14 +9,13 @@
 							<HBox alignItems="Start" width="65%" class="ContentTitle" justifyContent="Start">
 								<items>
 									<Title text="{i18n>textLicHab}" titleStyle="H3" class="titleBlue" textAlign="Begin" visible="true"/>
-									<Title text="{= ${i18n>SeleccionEvaluador} + (${Empresa>/selectedSociety} === '100' ? ' - Transener' : (${Empresa>/selectedSociety} === '300' ? ' - Transba' : '')) }" titleStyle="H4" class="subTitleBlue"/>
 								</items>
 								<layoutData/>
 							</HBox>
 							<VBox alignItems="Center" direction="Column" class="sapUiHideOnPhone ContentImg" fitContainer="false" width="35%" height="auto"
 								justifyContent="End" renderType="Div" visible="true" displayInline="false">
 								<items>
-									<Image src="/html5apps/equipoevaluador/img/{/society}.png" height="auto" width="200px" densityAware="false"/>
+									<Image src="{ImageModel>/Image}" height="auto" width="200px" densityAware="false"/>
 								</items>
 								<layoutData/>
 							</VBox>
