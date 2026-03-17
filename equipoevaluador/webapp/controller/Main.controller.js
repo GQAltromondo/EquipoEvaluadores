@@ -57,7 +57,6 @@ sap.ui.define([
 
             // Cargar empresa/society
             this.loadSociety();
-            this.getImageUrl()
         },
         getImageUrl: function () {
             const oView = this.getView()
@@ -91,6 +90,7 @@ sap.ui.define([
                     // Callback cuando se carga/selecciona empresa
                     that.society = sEmpresa;
                     that.loadHabEvaluadores();
+                    that.getImageUrl();
                     // Aquí puedes agregar otras funciones que dependan de la empresa
                     // that.loadNemos(sEmpresa);
                     // that.loadTipoEquipos(sEmpresa);
